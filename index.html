@@ -1,0 +1,2336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrbitNexus — ASTRA | NASA Space Apps 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --nasa-blue: #0b3d91;
+    --nasa-red: #fc3d21;
+    --space-dark: #020917;
+    --space-mid: #0a1628;
+    --space-light: #0d2045;
+    --teal: #00d4b8;
+    --teal-glow: rgba(0,212,184,0.3);
+    --orange: #ff6b35;
+    --orange-glow: rgba(255,107,53,0.3);
+    --cream: #f5e6d3;
+    --gold: #ffd700;
+    --purple: #7b2fff;
+    --cyan: #00cfff;
+    --white: #ffffff;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html, body {
+    width:100%; height:100%;
+    overflow:hidden;
+    background:#000;
+    font-family:'Inter', sans-serif;
+    color:#fff;
+  }
+
+  /* ═══════════════════════════════════════════
+     STARFIELD CANVAS
+  ═══════════════════════════════════════════ */
+  #starfield {
+    position:fixed; top:0; left:0;
+    width:100%; height:100%;
+    z-index:0;
+    pointer-events:none;
+  }
+
+  /* ═══════════════════════════════════════════
+     SLIDE CONTAINER
+  ═══════════════════════════════════════════ */
+  .slides-wrapper {
+    position:fixed; top:0; left:0;
+    width:100%; height:100%;
+    z-index:10;
+  }
+
+  .slide {
+    position:absolute; top:0; left:0;
+    width:100%; height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    opacity:0;
+    pointer-events:none;
+    transition: opacity 0.8s cubic-bezier(0.4,0,0.2,1),
+                transform 0.8s cubic-bezier(0.4,0,0.2,1);
+    transform: translateY(40px) scale(0.97);
+    overflow: hidden;
+  }
+
+  .slide.active {
+    opacity:1;
+    pointer-events:all;
+    transform: translateY(0) scale(1);
+  }
+
+  .slide.exit {
+    opacity:0;
+    transform: translateY(-40px) scale(1.03);
+  }
+
+  /* ═══════════════════════════════════════════
+     NAV DOTS
+  ═══════════════════════════════════════════ */
+  .nav-dots {
+    position:fixed; right:28px; top:50%;
+    transform:translateY(-50%);
+    z-index:100;
+    display:flex; flex-direction:column; gap:12px;
+  }
+
+  .dot {
+    width:10px; height:10px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.25);
+    cursor:pointer;
+    transition:all 0.3s;
+    border:2px solid rgba(255,255,255,0.3);
+  }
+
+  .dot.active {
+    background:var(--teal);
+    border-color:var(--teal);
+    box-shadow:0 0 12px var(--teal);
+    transform:scale(1.4);
+  }
+
+  /* ═══════════════════════════════════════════
+     SLIDE ARROWS
+  ═══════════════════════════════════════════ */
+  .nav-btn {
+    position:fixed; z-index:100;
+    background:rgba(0,212,184,0.12);
+    border:1.5px solid rgba(0,212,184,0.4);
+    color:var(--teal);
+    width:52px; height:52px;
+    border-radius:50%;
+    font-size:22px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:all 0.3s;
+    backdrop-filter:blur(8px);
+    left:50%; transform:translateX(-50%);
+  }
+
+  .nav-btn:hover {
+    background:rgba(0,212,184,0.3);
+    box-shadow:0 0 20px var(--teal-glow);
+  }
+
+  #prevBtn { bottom:80px; }
+  #nextBtn { bottom:24px; }
+
+  /* slide counter */
+  .slide-counter {
+    position:fixed; bottom:32px; left:50%;
+    transform:translateX(-50%) translateX(-60px);
+    z-index:100;
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    color:rgba(255,255,255,0.5);
+    letter-spacing:2px;
+  }
+
+  /* ═══════════════════════════════════════════
+     PROGRESS BAR
+  ═══════════════════════════════════════════ */
+  .progress-bar {
+    position:fixed; top:0; left:0;
+    height:3px; width:0%;
+    background:linear-gradient(90deg, var(--teal), var(--cyan), var(--purple));
+    z-index:200;
+    transition: width 0.6s ease;
+    box-shadow:0 0 10px var(--teal);
+  }
+
+  /* ═══════════════════════════════════════════
+     SLIDE CONTENT COMPONENTS
+  ═══════════════════════════════════════════ */
+
+  /* Glass card */
+  .glass {
+    background:rgba(13,32,69,0.55);
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid rgba(0,212,184,0.18);
+    border-radius:20px;
+  }
+
+  .glass-dark {
+    background:rgba(2,9,23,0.75);
+    backdrop-filter:blur(24px);
+    border:1px solid rgba(0,212,184,0.12);
+    border-radius:20px;
+  }
+
+  /* Section label */
+  .section-label {
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:4px;
+    text-transform:uppercase;
+    color:var(--teal);
+    opacity:0.8;
+    margin-bottom:16px;
+  }
+
+  /* Glowing title */
+  .glow-title {
+    font-family:'Orbitron', sans-serif;
+    font-weight:900;
+    line-height:1.1;
+    background:linear-gradient(135deg, #fff 0%, var(--teal) 50%, var(--cyan) 100%);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+    filter:drop-shadow(0 0 30px rgba(0,212,184,0.4));
+  }
+
+  /* Animate-in classes */
+  .fade-up { animation: fadeUp 0.8s ease both; }
+  .fade-up-d1 { animation: fadeUp 0.8s 0.1s ease both; }
+  .fade-up-d2 { animation: fadeUp 0.8s 0.2s ease both; }
+  .fade-up-d3 { animation: fadeUp 0.8s 0.35s ease both; }
+  .fade-up-d4 { animation: fadeUp 0.8s 0.5s ease both; }
+  .fade-up-d5 { animation: fadeUp 0.8s 0.65s ease both; }
+  .fade-up-d6 { animation: fadeUp 0.8s 0.8s ease both; }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(30px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity:0; }
+    to   { opacity:1; }
+  }
+
+  @keyframes scaleIn {
+    from { opacity:0; transform:scale(0.7); }
+    to   { opacity:1; transform:scale(1); }
+  }
+
+  @keyframes slideLeft {
+    from { opacity:0; transform:translateX(60px); }
+    to   { opacity:1; transform:translateX(0); }
+  }
+
+  @keyframes slideRight {
+    from { opacity:0; transform:translateX(-60px); }
+    to   { opacity:1; transform:translateX(0); }
+  }
+
+  @keyframes pulse {
+    0%,100% { transform:scale(1); box-shadow:0 0 20px var(--teal-glow); }
+    50% { transform:scale(1.05); box-shadow:0 0 40px var(--teal); }
+  }
+
+  @keyframes orbit {
+    from { transform:rotate(0deg) translateX(60px) rotate(0deg); }
+    to   { transform:rotate(360deg) translateX(60px) rotate(-360deg); }
+  }
+
+  @keyframes float {
+    0%,100% { transform:translateY(0px); }
+    50%     { transform:translateY(-15px); }
+  }
+
+  @keyframes shimmer {
+    0% { background-position:0% 50%; }
+    50% { background-position:100% 50%; }
+    100% { background-position:0% 50%; }
+  }
+
+  @keyframes spin-slow {
+    from { transform:rotate(0deg); }
+    to   { transform:rotate(360deg); }
+  }
+
+  @keyframes heartbeat {
+    0%,100% { transform:scale(1); }
+    14% { transform:scale(1.3); }
+    28% { transform:scale(1); }
+    42% { transform:scale(1.2); }
+    70% { transform:scale(1); }
+  }
+
+  @keyframes scanline {
+    0% { top:0%; }
+    100% { top:100%; }
+  }
+
+  @keyframes glitch {
+    0%,100% { text-shadow:2px 0 var(--teal), -2px 0 var(--orange); clip-path:none; }
+    10% { text-shadow:-2px 0 var(--teal), 2px 0 var(--orange); }
+    20% { text-shadow:2px 2px var(--cyan), -2px -2px var(--purple); }
+    30% { text-shadow:0 0 0; clip-path:none; }
+  }
+
+  @keyframes countUp {
+    from { opacity:0; transform:scale(0.5); }
+    to   { opacity:1; transform:scale(1); }
+  }
+
+  /* ═══════════════════════════════════════════
+     SLIDE 1 — TITLE / HERO
+  ═══════════════════════════════════════════ */
+  #slide1 {
+    background:radial-gradient(ellipse at 20% 50%, rgba(11,61,145,0.4) 0%, transparent 60%),
+               radial-gradient(ellipse at 80% 30%, rgba(123,47,255,0.3) 0%, transparent 60%),
+               var(--space-dark);
+  }
+
+  .hero-content {
+    text-align:center;
+    max-width:900px;
+    padding:40px;
+    position:relative;
+    z-index:2;
+  }
+
+  .hero-logo-wrap {
+    animation:float 4s ease-in-out infinite;
+    margin-bottom:36px;
+    display:inline-block;
+  }
+
+  .hero-logo {
+    width:160px; height:160px;
+    border-radius:50%;
+    object-fit:cover;
+    filter:drop-shadow(0 0 40px rgba(0,212,184,0.6))
+           drop-shadow(0 0 80px rgba(0,207,255,0.3));
+    border:3px solid rgba(0,212,184,0.4);
+  }
+
+  .logo-svg-fallback {
+    width:160px; height:160px;
+    border-radius:50%;
+    filter:drop-shadow(0 0 40px rgba(0,212,184,0.6))
+           drop-shadow(0 0 80px rgba(0,207,255,0.3));
+  }
+
+  .logo-sm {
+    width:120px; height:120px;
+  }
+
+  .logo-cta {
+    width:130px; height:130px;
+  }
+
+  .hero-year-badge {
+    display:inline-block;
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:4px;
+    color:var(--teal);
+    border:1px solid rgba(0,212,184,0.4);
+    padding:6px 20px;
+    border-radius:100px;
+    margin-bottom:24px;
+    background:rgba(0,212,184,0.08);
+    animation:fadeUp 0.8s ease both;
+  }
+
+  .hero-title {
+    font-family:'Orbitron', sans-serif;
+    font-size:clamp(3rem,7vw,6rem);
+    font-weight:900;
+    line-height:1;
+    letter-spacing:-2px;
+    margin-bottom:8px;
+    background:linear-gradient(135deg, #ffffff 0%, #a8e6ff 40%, var(--teal) 70%, var(--cyan) 100%);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+    filter:drop-shadow(0 0 40px rgba(0,212,184,0.5));
+    animation:fadeUp 0.8s 0.2s ease both;
+  }
+
+  .hero-subtitle {
+    font-family:'Orbitron', sans-serif;
+    font-size:clamp(1rem,2.5vw,1.5rem);
+    font-weight:400;
+    color:var(--orange);
+    letter-spacing:6px;
+    margin-bottom:24px;
+    text-transform:uppercase;
+    animation:fadeUp 0.8s 0.4s ease both;
+  }
+
+  .hero-tagline {
+    font-size:1.1rem;
+    color:rgba(255,255,255,0.65);
+    max-width:580px;
+    margin:0 auto 36px;
+    line-height:1.7;
+    font-weight:300;
+    animation:fadeUp 0.8s 0.55s ease both;
+  }
+
+  .hero-tags {
+    display:flex; flex-wrap:wrap; justify-content:center; gap:10px;
+    animation:fadeUp 0.8s 0.7s ease both;
+  }
+
+  .hero-tag {
+    font-family:'Space Mono', monospace;
+    font-size:10px;
+    letter-spacing:2px;
+    padding:7px 16px;
+    border-radius:100px;
+    border:1px solid rgba(0,212,184,0.3);
+    background:rgba(0,212,184,0.08);
+    color:var(--teal);
+    text-transform:uppercase;
+  }
+
+  /* Orbiting ring decoration */
+  .orbit-ring {
+    position:absolute;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    width:700px; height:700px;
+    border-radius:50%;
+    border:1px solid rgba(0,212,184,0.08);
+    animation:spin-slow 20s linear infinite;
+    pointer-events:none;
+  }
+
+  .orbit-ring::before {
+    content:'';
+    position:absolute;
+    top:0; left:50%;
+    transform:translate(-50%,-50%);
+    width:8px; height:8px;
+    border-radius:50%;
+    background:var(--teal);
+    box-shadow:0 0 20px var(--teal);
+  }
+
+  .orbit-ring2 {
+    width:500px; height:500px;
+    border-color:rgba(123,47,255,0.1);
+    animation:spin-slow 15s linear infinite reverse;
+  }
+
+  /* ═══════════════════════════════════════════
+     SLIDE 2 — THE PROBLEM
+  ═══════════════════════════════════════════ */
+  #slide2 {
+    background:radial-gradient(ellipse at 50% 100%, rgba(252,61,33,0.25) 0%, transparent 60%),
+               var(--space-dark);
+  }
+
+  .problem-layout {
+    max-width:1100px;
+    width:90%;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:50px;
+    align-items:center;
+  }
+
+  .problem-left { text-align:left; }
+
+  .problem-title {
+    font-family:'Orbitron', sans-serif;
+    font-size:clamp(2rem,4vw,3.2rem);
+    font-weight:900;
+    line-height:1.1;
+    margin-bottom:20px;
+    background:linear-gradient(135deg,#fff,#ff6b6b);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+  }
+
+  .problem-desc {
+    font-size:1.05rem;
+    color:rgba(255,255,255,0.7);
+    line-height:1.8;
+    margin-bottom:30px;
+    font-weight:300;
+  }
+
+  .stat-cards {
+    display:grid; grid-template-columns:1fr 1fr; gap:14px;
+  }
+
+  .stat-card {
+    padding:20px;
+    border-radius:16px;
+    background:rgba(252,61,33,0.08);
+    border:1px solid rgba(252,61,33,0.25);
+    text-align:center;
+  }
+
+  .stat-num {
+    font-family:'Orbitron', sans-serif;
+    font-size:2rem;
+    font-weight:900;
+    color:var(--nasa-red);
+    display:block;
+    filter:drop-shadow(0 0 10px rgba(252,61,33,0.5));
+  }
+
+  .stat-label {
+    font-size:0.75rem;
+    color:rgba(255,255,255,0.55);
+    text-transform:uppercase;
+    letter-spacing:1px;
+    margin-top:4px;
+    display:block;
+  }
+
+  /* Astronaut SVG figure area */
+  .astro-visual {
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+  }
+
+  .astro-card {
+    width:100%;
+    max-width:400px;
+    padding:36px 30px;
+    border-radius:24px;
+    background:rgba(10,22,40,0.8);
+    border:1px solid rgba(252,61,33,0.3);
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .astro-card::before {
+    content:'';
+    position:absolute; top:0; left:0; right:0;
+    height:3px;
+    background:linear-gradient(90deg, var(--nasa-red), var(--orange));
+  }
+
+  .alert-icon {
+    font-size:4rem;
+    margin-bottom:16px;
+    animation:heartbeat 2s ease infinite;
+    display:block;
+  }
+
+  .alert-title {
+    font-family:'Orbitron', sans-serif;
+    font-size:1.1rem;
+    color:var(--nasa-red);
+    margin-bottom:12px;
+    letter-spacing:2px;
+  }
+
+  .timeline-item {
+    display:flex; align-items:flex-start; gap:14px;
+    margin-bottom:14px; text-align:left;
+  }
+
+  .tl-dot {
+    width:8px; height:8px; min-width:8px;
+    border-radius:50%;
+    background:var(--nasa-red);
+    margin-top:6px;
+    box-shadow:0 0 8px rgba(252,61,33,0.6);
+  }
+
+  .tl-text {
+    font-size:0.85rem;
+    color:rgba(255,255,255,0.7);
+    line-height:1.5;
+  }
+
+  /* ═══════════════════════════════════════════
+     SLIDE 3 — INTRODUCING ASTRA
+  ═══════════════════════════════════════════ */
+  #slide3 {
+    background:radial-gradient(ellipse at 30% 50%, rgba(0,212,184,0.15) 0%, transparent 55%),
+               radial-gradient(ellipse at 70% 50%, rgba(0,207,255,0.1) 0%, transparent 55%),
+               var(--space-dark);
+  }
+
+  .intro-layout {
+    max-width:950px; width:90%;
+    text-align:center;
+  }
+
+  .astra-logo-ring {
+    position:relative;
+    display:inline-block;
+    margin-bottom:36px;
+  }
+
+  .astra-logo-ring img {
+    width:120px; height:120px;
+    border-radius:50%;
+    object-fit:cover;
+    position:relative; z-index:2;
+    filter:drop-shadow(0 0 30px rgba(0,212,184,0.7));
+  }
+
+  .ring-animate {
+    position:absolute;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    border-radius:50%;
+    border:2px solid rgba(0,212,184,0.3);
+    animation:pulse 3s ease-in-out infinite;
+  }
+
+  .ring-1 { width:150px; height:150px; animation-delay:0s; }
+  .ring-2 { width:190px; height:190px; animation-delay:0.5s; opacity:0.6; }
+  .ring-3 { width:230px; height:230px; animation-delay:1s; opacity:0.3; }
+
+  .intro-title {
+    font-family:'Orbitron', sans-serif;
+    font-size:clamp(2.5rem,6vw,5rem);
+    font-weight:900;
+    background:linear-gradient(135deg,#fff 0%, var(--teal) 60%, var(--cyan) 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    filter:drop-shadow(0 0 30px rgba(0,212,184,0.4));
+    margin-bottom:4px;
+  }
+
+  .intro-full-name {
+    font-size:0.9rem;
+    color:rgba(255,255,255,0.45);
+    font-family:'Space Mono', monospace;
+    letter-spacing:3px;
+    margin-bottom:24px;
+    text-transform:uppercase;
+  }
+
+  .intro-desc {
+    font-size:1.15rem;
+    color:rgba(255,255,255,0.75);
+    line-height:1.8;
+    max-width:700px;
+    margin:0 auto 36px;
+    font-weight:300;
+  }
+
+  .feature-pills {
+    display:flex; flex-wrap:wrap; justify-content:center; gap:12px;
+  }
+
+  .feature-pill {
+    display:flex; align-items:center; gap:8px;
+    padding:10px 20px;
+    border-radius:100px;
+    background:rgba(0,212,184,0.1);
+    border:1px solid rgba(0,212,184,0.3);
+    font-size:0.9rem;
+    color:#fff;
+    font-weight:500;
+    transition:all 0.3s;
+  }
+
+  .feature-pill:hover {
+    background:rgba(0,212,184,0.2);
+    box-shadow:0 0 20px var(--teal-glow);
+    transform:translateY(-2px);
+  }
+
+  .pill-icon { font-size:1.1rem; }
+
+  /* ═══════════════════════════════════════════
+     SLIDE 4 — ARCHITECTURE
+  ═══════════════════════════════════════════ */
+  #slide4 {
+    background:radial-gradient(ellipse at 50% 0%, rgba(123,47,255,0.2) 0%, transparent 60%),
+               var(--space-dark);
+  }
+
+  .arch-layout {
+    max-width:1100px; width:92%;
+  }
+
+  .arch-title {
+    font-family:'Orbitron', sans-serif;
+    font-size:clamp(1.8rem,3.5vw,2.8rem);
+    font-weight:900;
+    text-align:center;
+    background:linear-gradient(135deg,#fff,var(--purple),var(--cyan));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    margin-bottom:8px;
+  }
+
+  .arch-sub {
+    text-align:center;
+    font-size:0.95rem;
+    color:rgba(255,255,255,0.5);
+    margin-bottom:36px;
+    font-family:'Space Mono', monospace;
+    letter-spacing:2px;
+  }
+
+  .arch-grid {
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:16px;
+  }
+
+  .arch-card {
+    padding:22px 16px;
+    border-radius:18px;
+    background:rgba(10,22,40,0.7);
+    border:1px solid rgba(123,47,255,0.25);
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+    transition:all 0.3s;
+    cursor:default;
+  }
+
+  .arch-card:hover {
+    transform:translateY(-6px);
+    box-shadow:0 20px 40px rgba(123,47,255,0.2);
+    border-color:rgba(123,47,255,0.5);
+  }
+
+  .arch-card::before {
+    content:'';
+    position:absolute; top:0; left:0; right:0;
+    height:2px;
+    background:linear-gradient(90deg, var(--purple), var(--teal));
+  }
+
+  .arch-icon { font-size:2.2rem; margin-bottom:12px; display:block; }
+  .arch-name {
+    font-family:'Orbitron', sans-serif;
+    font-size:0.75rem;
+    font-weight:700;
+    color:var(--teal);
+    letter-spacing:1px;
+    margin-bottom:6px;
+    text-transform:uppercase;
+  }
+  .arch-algo {
+    font-size:0.72rem;
+    color:rgba(255,255,255,0.5);
+    font-family:'Space Mono', monospace;
+  }
+  .arch-score {
+    display:inline-block;
+    margin-top:10px;
+    font-family:'Orbitron', sans-serif;
+    font-size:0.9rem;
+    font-weight:700;
+    color:var(--gold);
+  }
+
+  .arch-flow {
+    display:flex; align-items:center; justify-content:center;
+    gap:16px; margin-top:24px;
+    flex-wrap:wrap;
+  }
+
+  .flow-box {
+    padding:12px 24px;
+    border-radius:12px;
+    font-size:0.85rem;
+    font-weight:600;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    font-family:'Space Mono', monospace;
+  }
+
+  .flow-sensor { background:rgba(0,207,255,0.15); border:1px solid rgba(0,207,255,0.4); color:var(--cyan); }
+  .flow-astra  { background:rgba(0,212,184,0.15); border:1px solid var(--teal); color:var(--teal); }
+  .flow-llm    { background:rgba(123,47,255,0.15); border:1px solid rgba(123,47,255,0.5); color:#b87fff; }
+  .flow-ui     { background:rgba(255,107,53,0.15); border:1px solid rgba(255,107,53,0.4); color:var(--orange); }
+
+  .flow-arrow {
+    color:rgba(255,255,255,0.3);
+    font-size:1.4rem;
+    font-weight:300;
+  }
+
+  /* ═══════════════════════════════════════════
+     SLIDE 5 — ML MODELS DEEP DIVE
+  ═══════════════════════════════════════════ */
+  #slide5 {
+    background:radial-gradient(ellipse at 80% 50%, rgba(0,212,184,0.12) 0%, transparent 55%),
+               var(--space-dark);
+  }
+
+  .models-layout {
+    max-width:1100px; width:92%;
+  }
+
+  .models-title {
+    font-family:'Orbitron', sans-serif;
+    font-size:clamp(1.8rem,3vw,2.5rem);
+    font-weight:900;
+    text-align:center;
+    background:linear-gradient(135deg,#fff,var(--teal));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    margin-bottom:30px;
+  }
+
+  .models-grid {
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:14px;
+    margin-bottom:24px;
+  }
+
+  .model-card {
+    border-radius:18px;
+    overflow:hidden;
+    background:rgba(10,22,40,0.8);
+    border:1px solid rgba(0,212,184,0.15);
+    transition:all 0.4s;
+    cursor:default;
+  }
+
+  .model-card:hover {
+    transform:translateY(-8px) scale(1.03);
+    border-color:rgba(0,212,184,0.4);
+    box-shadow:0 20px 40px rgba(0,0,0,0.5);
+  }
+
+  .model-header {
+    padding:20px 16px;
+    text-align:center;
+    position:relative;
+  }
+
+  .model-icon { font-size:2.4rem; margin-bottom:8px; display:block; }
+
+  .model-name {
+    font-family:'Orbitron', sans-serif;
+    font-size:0.72rem;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:#fff;
+    line-height:1.3;
+  }
+
+  .model-body { padding:14px 16px; }
+
+  .model-metric {
+    font-family:'Orbitron', sans-serif;
+    font-size:1.6rem;
+    font-weight:900;
+    text-align:center;
+    margin-bottom:4px;
+  }
+
+  .model-metric-label {
+    font-size:0.65rem;
+    text-align:center;
+    color:rgba(255,255,255,0.45);
+    font-family:'Space Mono', monospace;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+
+  .model-dataset {
+    font-size:0.65rem;
+    color:rgba(255,255,255,0.4);
+    text-align:center;
+    font-family:'Space Mono', monospace;
+  }
+
+  .m1 .model-header { background:linear-gradient(135deg, rgba(252,61,33,0.3), rgba(255,107,53,0.1)); }
+  .m1 .model-metric { color:var(--nasa-red); }
+
+  .m2 .model-header { background:linear-gradient(135deg, rgba(123,47,255,0.3), rgba(0,212,184,0.1)); }
+  .m2 .model-metric { color:#b87fff; }
+
+  .m3 .model-header { background:linear-gradient(135deg, rgba(0,212,184,0.3), rgba(0,207,255,0.1)); }
+  .m3 .model-metric { color:var(--teal); }
+
+  .m4 .model-header { background:linear-gradient(135deg, rgba(255,215,0,0.3), rgba(255,107,53,0.1)); }
+  .m4 .model-metric { color:var(--gold); }
+
+  .m5 .model-header { background:linear-gradient(135deg, rgba(0,207,255,0.3), rgba(123,47,255,0.1)); }
+  .m5 .model-metric { color:var(--cyan); }
+
+  .data-row {
+    display:flex; align-items:center; justify-content:center; gap:30px;
+    padding:16px 20px;
+    border-radius:14px;
+    background:rgba(0,212,184,0.05);
+    border:1px solid rgba(0,212,184,0.12);
+  }
+
+  .data-item { text-align:center; }
+  .data-num {
+    font-family:'Orbitron', sans-serif;
+    font-size:1.4rem; font-weight:900;
+    color:var(--teal);
+  }
+  .data-label {
+    font-size:0.65rem;
+    color:rgba(255,255,255,0.4);
+    text-transform:uppercase;
+    letter-spacing:1px;
+    font-family:'Space Mono', monospace;
+  }
+  .data-divider {
+    width:1px; height:40px;
+    background:rgba(0,212,184,0.2);
+  }
+
+  /* ═══════════════════════════════════════════
+     SLIDE 6 — AI ASSISTANT
+  ═══════════════════════════════════════════ */
+  #slide6 {
+    background:radial-gradient(ellipse at 20% 30%, rgba(123,47,255,0.3) 0%, transparent 55%),
+               radial-gradient(ellipse at 80% 70%, rgba(0,207,255,0.15) 0%, transparent 55%),
+               var(--space-dark);
+  }
+
+  .ai-layout {
+    max-width:1050px; width:90%;
+    display:grid; grid-template-columns:1fr 1fr;
+    gap:50px; align-items:center;
+  }
+
+  .ai-left {}
+
+  .ai-title {
+    font-family:'Orbitron', sans-serif;
+    font-size:clamp(2rem,4vw,3rem);
+    font-weight:900;
+    background:linear-gradient(135deg,#fff,#b87fff,var(--cyan));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    margin-bottom:16px;
+    line-height:1.2;
+  }
+
+  .ai-desc {
+    font-size:1rem;
+    color:rgba(255,255,255,0.65);
+    line-height:1.8;
+    margin-bottom:24px;
+    font-weight:300;
+  }
+
+  .ai-features { display:flex; flex-direction:column; gap:12px; }
+
+  .ai-feat {
+    display:flex; align-items:center; gap:14px;
+    padding:14px 18px; border-radius:12px;
+    background:rgba(123,47,255,0.1);
+    border:1px solid rgba(123,47,255,0.25);
+  }
+
+  .ai-feat-icon { font-size:1.4rem; flex-shrink:0; }
+  .ai-feat-text { font-size:0.9rem; color:rgba(255,255,255,0.75); font-weight:400; }
+
+  /* Chat UI mockup */
+  .chat-mockup {
+    border-radius:20px;
+    overflow:hidden;
+    background:rgba(10,22,40,0.9);
+    border:1px solid rgba(123,47,255,0.3);
+    box-shadow:0 30px 60px rgba(0,0,0,0.5);
+  }
+
+  .chat-header {
+    padding:14px 20px;
+    background:rgba(123,47,255,0.15);
+    border-bottom:1px solid rgba(123,47,255,0.25);
+    display:flex; align-items:center; gap:12px;
+  }
+
+  .chat-status-dot {
+    width:8px; height:8px; border-radius:50%;
+    background:#00ff88;
+    box-shadow:0 0 8px #00ff88;
+    animation:pulse 2s infinite;
+  }
+
+  .chat-title-sm {
+    font-family:'Orbitron', sans-serif;
+    font-size:0.75rem; font-weight:700;
+    color:#b87fff; letter-spacing:2px;
+  }
+
+  .chat-body { padding:20px; display:flex; flex-direction:column; gap:14px; }
+
+  .msg { max-width:85%; font-size:0.82rem; line-height:1.6; }
+
+  .msg-user {
+    align-self:flex-end;
+    padding:10px 16px; border-radius:16px 16px 4px 16px;
+    background:rgba(0,212,184,0.15);
+    border:1px solid rgba(0,212,184,0.3);
+    color:rgba(255,255,255,0.85);
+  }
+
+  .msg-astra {
+    align-self:flex-start;
+    padding:12px 16px; border-radius:4px 16px 16px 16px;
+    background:rgba(123,47,255,0.15);
+    border:1px solid rgba(123,47,255,0.3);
+    color:rgba(255,255,255,0.85);
+  }
+
+  .msg-label {
+    font-size:0.65rem; letter-spacing:2px;
+    color:rgba(255,255,255,0.35);
+    font-family:'Space Mono', monospace;
+    margin-bottom:4px;
+    text-transform:uppercase;
+  }
+
+  .typing-indicator {
+    display:flex; gap:5px; align-items:center; padding:4px 0;
+  }
+
+  .typing-dot {
+    width:6px; height:6px; border-radius:50%;
+    background:rgba(123,47,255,0.6);
+    animation:typingBounce 1.4s ease infinite;
+  }
+
+  .typing-dot:nth-child(2) { animation-delay:0.2s; }
+  .typing-dot:nth-child(3) { animation-delay:0.4s; }
+
+  @keyframes typingBounce {
+    0%,60%,100% { transform:translateY(0); }
+    30% { transform:translateY(-8px); }
+  }
+
+  /* ═══════════════════════════════════════════
+     SLIDE 7 — DASHBOARD PREVIEW
+  ═══════════════════════════════════════════ */
+  #slide7 {
+    background:radial-gradient(ellipse at 50% 50%, rgba(0,212,184,0.08) 0%, transparent 60%),
+               var(--space-dark);
+  }
+
+  .dashboard-layout {
+    max-width:1100px; width:94%;
+    text-align:center;
+  }
+
+  .dash-title {
+    font-family:'Orbitron', sans-serif;
+    font-size:clamp(1.8rem,3.5vw,2.8rem);
+    font-weight:900;
+    background:linear-gradient(135deg,#fff,var(--teal));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    margin-bottom:8px;
+  }
+
+  .dash-sub {
+    font-size:0.9rem;
+    color:rgba(255,255,255,0.45);
+    margin-bottom:28px;
+    font-family:'Space Mono', monospace;
+    letter-spacing:2px;
+  }
+
+  /* Mock dashboard */
+  .mock-dashboard {
+    border-radius:20px;
+    overflow:hidden;
+    background:rgba(2,9,23,0.95);
+    border:1px solid rgba(0,212,184,0.2);
+    box-shadow:0 30px 80px rgba(0,0,0,0.6);
+    position:relative;
+  }
+
+  .mock-topbar {
+    padding:12px 20px;
+    background:rgba(10,22,40,0.95);
+    border-bottom:1px solid rgba(0,212,184,0.15);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+
+  .mock-brand {
+    font-family:'Orbitron', sans-serif;
+    font-size:0.85rem; font-weight:700;
+    color:var(--teal); letter-spacing:3px;
+  }
+
+  .mock-status {
+    display:flex; gap:16px; align-items:center;
+  }
+
+  .mock-status-item {
+    font-family:'Space Mono', monospace;
+    font-size:0.65rem; color:rgba(255,255,255,0.4);
+    display:flex; align-items:center; gap:5px;
+  }
+
+  .mock-status-dot { width:6px; height:6px; border-radius:50%; background:#00ff88; animation:pulse 2s infinite; }
+
+  .mock-body {
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr 1fr;
+    grid-template-rows:auto auto;
+    gap:12px;
+    padding:14px;
+  }
+
+  .mock-vital {
+    padding:16px;
+    border-radius:12px;
+    background:rgba(10,22,40,0.8);
+    border:1px solid rgba(0,212,184,0.12);
+    text-align:center;
+  }
+
+  .mock-vital-label {
+    font-size:0.6rem;
+    color:rgba(255,255,255,0.35);
+    text-transform:uppercase;
+    letter-spacing:2px;
+    font-family:'Space Mono', monospace;
+    margin-bottom:6px;
+  }
+
+  .mock-vital-val {
+    font-family:'Orbitron', sans-serif;
+    font-size:1.6rem;
+    font-weight:900;
+  }
+
+  .mock-vital-unit { font-size:0.6rem; color:rgba(255,255,255,0.4); }
+
+  .v-hr { color:#ff6b6b; }
+  .v-spo2 { color:var(--cyan); }
+  .v-stress { color:var(--orange); }
+  .v-activity { color:var(--teal); font-size:0.9rem !important; }
+
+  .mock-graph {
+    grid-column:span 2;
+    padding:14px;
+    border-radius:12px;
+    background:rgba(10,22,40,0.8);
+    border:1px solid rgba(0,212,184,0.12);
+    position:relative;
+    overflow:hidden;
+  }
+
+  .mock-graph-label {
+    font-size:0.6rem;
+    color:rgba(255,255,255,0.35);
+    text-transform:uppercase;
+    letter-spacing:2px;
+    font-family:'Space Mono', monospace;
+    margin-bottom:8px;
+  }
+
+  .ecg-svg { width:100%; height:50px; }
+
+  .mock-alert {
+    grid-column:span 2;
+    padding:14px;
+    border-radius:12px;
+    background:rgba(252,61,33,0.08);
+    border:1px solid rgba(252,61,33,0.25);
+    display:flex; align-items:center; gap:14px;
+  }
+
+  .alert-anim {
+    width:36px; height:36px; border-radius:50%;
+    background:rgba(252,61,33,0.2);
+    border:2px solid var(--nasa-red);
+    display:flex; align-items:center; justify-content:center;
+    font-size:1rem;
+    flex-shrink:0;
+    animation:pulse 1.5s ease-in-out infinite;
+  }
+
+  .alert-text { font-size:0.75rem; color:rgba(255,255,255,0.65); line-height:1.5; }
+  .alert-text strong { color:var(--nasa-red); }
+
+  .mock-ai-row {
+    grid-column:span 4;
+    padding:14px 20px;
+    border-radius:12px;
+    background:rgba(123,47,255,0.08);
+    border:1px solid rgba(123,47,255,0.2);
+    display:flex; align-items:center; gap:14px;
+    font-size:0.8rem;
+    color:rgba(255,255,255,0.65);
+  }
+
+  .ai-chip {
+    font-family:'Orbitron', sans-serif;
+    font-size:0.65rem;
+    color:#b87fff;
+    background:rgba(123,47,255,0.2);
+    padding:4px 10px;
+    border-radius:100px;
+    border:1px solid rgba(123,47,255,0.3);
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+
+  /* scan line overlay */
+  .scan-overlay {
+    position:absolute; top:0; left:0; right:0;
+    height:2px;
+    background:linear-gradient(90deg, transparent, rgba(0,212,184,0.4), transparent);
+    animation:scanline 3s linear infinite;
+    pointer-events:none;
+  }
+
+  /* ═══════════════════════════════════════════
+     SLIDE 8 — DATA SOURCES
+  ═══════════════════════════════════════════ */
+  #slide8 {
+    background:radial-gradient(ellipse at 50% 100%, rgba(0,207,255,0.15) 0%, transparent 55%),
+               var(--space-dark);
+  }
+
+  .data-layout {
+    max-width:1050px; width:92%;
+    text-align:center;
+  }
+
+  .data-title {
+    font-family:'Orbitron', sans-serif;
+    font-size:clamp(1.8rem,3.5vw,2.8rem);
+    font-weight:900;
+    background:linear-gradient(135deg,#fff,var(--cyan));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    margin-bottom:8px;
+  }
+
+  .data-desc {
+    font-size:0.95rem; color:rgba(255,255,255,0.5);
+    margin-bottom:36px;
+    font-weight:300;
+  }
+
+  .sources-grid {
+    display:grid; grid-template-columns:repeat(2,1fr); gap:20px;
+    margin-bottom:30px;
+  }
+
+  .source-card {
+    padding:28px;
+    border-radius:18px;
+    background:rgba(10,22,40,0.7);
+    border:1px solid rgba(0,207,255,0.15);
+    text-align:left;
+    display:flex; gap:20px;
+    align-items:flex-start;
+    transition:all 0.3s;
+  }
+
+  .source-card:hover {
+    border-color:rgba(0,207,255,0.4);
+    box-shadow:0 10px 30px rgba(0,207,255,0.1);
+    transform:translateY(-3px);
+  }
+
+  .source-icon {
+    font-size:2.5rem;
+    flex-shrink:0;
+    margin-top:2px;
+  }
+
+  .source-name {
+    font-family:'Orbitron', sans-serif;
+    font-size:0.85rem; font-weight:700;
+    color:var(--cyan);
+    margin-bottom:6px;
+    letter-spacing:1px;
+  }
+
+  .source-desc {
+    font-size:0.82rem;
+    color:rgba(255,255,255,0.55);
+    line-height:1.6;
+  }
+
+  .source-badge {
+    display:inline-block;
+    margin-top:8px;
+    font-size:0.65rem;
+    padding:3px 10px;
+    border-radius:100px;
+    background:rgba(0,207,255,0.1);
+    border:1px solid rgba(0,207,255,0.25);
+    color:var(--cyan);
+    font-family:'Space Mono', monospace;
+    letter-spacing:1px;
+  }
+
+  .total-samples {
+    display:inline-flex; align-items:center; gap:16px;
+    padding:16px 32px;
+    border-radius:14px;
+    background:rgba(0,207,255,0.08);
+    border:1px solid rgba(0,207,255,0.2);
+  }
+
+  .total-num {
+    font-family:'Orbitron', sans-serif;
+    font-size:2.4rem; font-weight:900;
+    color:var(--cyan);
+    filter:drop-shadow(0 0 15px rgba(0,207,255,0.5));
+  }
+
+  .total-label {
+    font-size:0.8rem;
+    color:rgba(255,255,255,0.45);
+    text-transform:uppercase;
+    letter-spacing:2px;
+    font-family:'Space Mono', monospace;
+    text-align:left;
+  }
+
+  /* ═══════════════════════════════════════════
+     SLIDE 9 — IMPACT & FUTURE
+  ═══════════════════════════════════════════ */
+  #slide9 {
+    background:radial-gradient(ellipse at 50% 0%, rgba(255,215,0,0.15) 0%, transparent 55%),
+               radial-gradient(ellipse at 80% 100%, rgba(0,212,184,0.1) 0%, transparent 55%),
+               var(--space-dark);
+  }
+
+  .impact-layout {
+    max-width:1050px; width:90%;
+    display:grid; grid-template-columns:1fr 1fr;
+    gap:50px; align-items:start;
+  }
+
+  .impact-title {
+    font-family:'Orbitron', sans-serif;
+    font-size:clamp(2rem,4vw,3rem);
+    font-weight:900;
+    background:linear-gradient(135deg,#fff,var(--gold),var(--orange));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    margin-bottom:16px;
+    line-height:1.1;
+  }
+
+  .impact-desc {
+    font-size:1rem;
+    color:rgba(255,255,255,0.65);
+    line-height:1.8;
+    font-weight:300;
+    margin-bottom:24px;
+  }
+
+  .impact-items { display:flex; flex-direction:column; gap:14px; }
+
+  .impact-item {
+    display:flex; align-items:center; gap:14px;
+    padding:14px 18px; border-radius:12px;
+    background:rgba(255,215,0,0.06);
+    border:1px solid rgba(255,215,0,0.15);
+  }
+
+  .impact-icon { font-size:1.6rem; flex-shrink:0; }
+  .impact-text { font-size:0.88rem; color:rgba(255,255,255,0.7); line-height:1.5; }
+
+  .roadmap { display:flex; flex-direction:column; gap:0; }
+  .roadmap-title {
+    font-family:'Orbitron', sans-serif;
+    font-size:1rem; font-weight:700;
+    color:var(--gold); margin-bottom:20px;
+    letter-spacing:2px; text-transform:uppercase;
+  }
+
+  .roadmap-item {
+    display:flex; gap:16px; padding-bottom:24px;
+    position:relative;
+  }
+
+  .roadmap-item:not(:last-child)::before {
+    content:'';
+    position:absolute;
+    left:12px; top:28px;
+    width:2px; height:calc(100% - 10px);
+    background:linear-gradient(to bottom, rgba(255,215,0,0.4), transparent);
+  }
+
+  .rm-dot {
+    width:26px; height:26px; min-width:26px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.7rem; font-weight:700;
+    font-family:'Orbitron', monospace;
+    flex-shrink:0;
+    margin-top:2px;
+  }
+
+  .rm-dot-1 { background:var(--teal); color:#000; }
+  .rm-dot-2 { background:var(--gold); color:#000; }
+  .rm-dot-3 { background:var(--purple); color:#fff; }
+  .rm-dot-4 { background:rgba(255,255,255,0.2); color:#fff; border:1px dashed rgba(255,255,255,0.3); }
+
+  .rm-content { }
+  .rm-phase {
+    font-size:0.65rem; color:rgba(255,255,255,0.4);
+    text-transform:uppercase; letter-spacing:2px;
+    font-family:'Space Mono', monospace; margin-bottom:3px;
+  }
+
+  .rm-text { font-size:0.88rem; color:rgba(255,255,255,0.75); font-weight:500; }
+
+  /* ═══════════════════════════════════════════
+     SLIDE 10 — CALL TO ACTION / CLOSING
+  ═══════════════════════════════════════════ */
+  #slide10 {
+    background:radial-gradient(ellipse at 30% 50%, rgba(0,212,184,0.2) 0%, transparent 55%),
+               radial-gradient(ellipse at 70% 50%, rgba(123,47,255,0.2) 0%, transparent 55%),
+               var(--space-dark);
+  }
+
+  .cta-content {
+    text-align:center;
+    max-width:800px;
+    padding:40px;
+  }
+
+  .cta-logo {
+    width:130px; height:130px;
+    border-radius:50%;
+    object-fit:cover;
+    filter:drop-shadow(0 0 50px rgba(0,212,184,0.7));
+    animation:float 4s ease-in-out infinite;
+    margin-bottom:30px;
+    border:3px solid rgba(0,212,184,0.5);
+  }
+
+  .cta-quote {
+    font-size:1.6rem;
+    font-style:italic;
+    color:rgba(255,255,255,0.7);
+    line-height:1.6;
+    margin-bottom:8px;
+    font-weight:300;
+  }
+
+  .cta-quote strong { color:#fff; font-style:normal; }
+
+  .cta-attr {
+    font-family:'Space Mono', monospace;
+    font-size:0.75rem;
+    color:var(--teal);
+    letter-spacing:3px;
+    margin-bottom:36px;
+    text-transform:uppercase;
+  }
+
+  .cta-title {
+    font-family:'Orbitron', sans-serif;
+    font-size:clamp(2.5rem,6vw,4.5rem);
+    font-weight:900;
+    background:linear-gradient(135deg,#ffffff,var(--teal),var(--cyan),var(--purple));
+    background-size:300% 300%;
+    animation:shimmer 4s ease infinite;
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    filter:drop-shadow(0 0 40px rgba(0,212,184,0.4));
+    margin-bottom:12px;
+  }
+
+  .cta-sub {
+    font-size:1.1rem;
+    color:rgba(255,255,255,0.55);
+    margin-bottom:36px;
+    font-weight:300;
+  }
+
+  .cta-team {
+    display:inline-flex; align-items:center; gap:12px;
+    padding:14px 32px;
+    border-radius:100px;
+    background:rgba(0,212,184,0.1);
+    border:1px solid rgba(0,212,184,0.3);
+    font-family:'Orbitron', sans-serif;
+    font-size:0.9rem;
+    color:var(--teal);
+    letter-spacing:3px;
+    text-transform:uppercase;
+  }
+
+  .cta-hackathon {
+    margin-top:16px;
+    font-family:'Space Mono', monospace;
+    font-size:0.75rem;
+    color:rgba(255,255,255,0.3);
+    letter-spacing:2px;
+  }
+
+  /* ═══════════════════════════════════════════
+     COSMIC NEBULA DECORATIONS
+  ═══════════════════════════════════════════ */
+  .nebula {
+    position:absolute;
+    border-radius:50%;
+    filter:blur(80px);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* ═══════════════════════════════════════════
+     KEYBOARD HINT
+  ═══════════════════════════════════════════ */
+  .keyboard-hint {
+    position:fixed; bottom:10px; left:50%;
+    transform:translateX(-50%);
+    font-family:'Space Mono', monospace;
+    font-size:9px;
+    color:rgba(255,255,255,0.2);
+    letter-spacing:2px;
+    z-index:100;
+    pointer-events:none;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- STARFIELD -->
+<canvas id="starfield"></canvas>
+
+<!-- PROGRESS BAR -->
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- SLIDE COUNTER -->
+<div class="slide-counter" id="slideCounter">01 / 10</div>
+
+<!-- NAV DOTS -->
+<div class="nav-dots" id="navDots"></div>
+
+<!-- NAV BUTTONS -->
+<button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">↑</button>
+<button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">↓</button>
+
+<div class="keyboard-hint">↑ ↓ ARROW KEYS OR SCROLL TO NAVIGATE</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDES
+═══════════════════════════════════════════ -->
+<div class="slides-wrapper" id="slidesWrapper">
+
+  <!-- ══ SLIDE 1 — HERO ══ -->
+  <div class="slide active" id="slide1">
+    <!-- Orbit ring decorations -->
+    <div class="orbit-ring" style="z-index:1;"></div>
+    <div class="orbit-ring orbit-ring2" style="z-index:1;"></div>
+
+    <div class="hero-content" style="z-index:2;">
+      <div class="hero-logo-wrap fade-up">
+        <img id="logo-hero" src="logo.png" alt="OrbitNexus Logo" class="hero-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <svg id="logo-hero-svg" class="logo-svg-fallback" style="display:none" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="100" r="98" fill="#1a2744" stroke="#f5e6d3" stroke-width="2"/>
+          <circle cx="100" cy="100" r="80" fill="#1e2d55" stroke="#f5e6d3" stroke-width="1" stroke-dasharray="4,4"/>
+          <circle cx="100" cy="100" r="62" fill="#243360"/>
+          <!-- Planet -->
+          <circle cx="100" cy="95" r="38" fill="url(#pg)"/>
+          <defs>
+            <radialGradient id="pg" cx="40%" cy="35%">
+              <stop offset="0%" stop-color="#ff9966"/>
+              <stop offset="100%" stop-color="#cc4400"/>
+            </radialGradient>
+          </defs>
+          <!-- Orbit ring -->
+          <ellipse cx="100" cy="95" rx="56" ry="18" fill="none" stroke="#00d4b8" stroke-width="2.5"/>
+          <!-- Orbit dot -->
+          <circle cx="156" cy="95" r="4" fill="#00d4b8"/>
+          <!-- N letter -->
+          <text x="100" y="112" font-family="serif" font-size="48" font-weight="bold" text-anchor="middle" fill="#f5e6d3" opacity="0.95">N</text>
+          <!-- ECG line -->
+          <polyline points="40,150 60,150 65,150 70,138 75,162 80,150 100,150 105,150 110,136 115,163 120,150 160,150" fill="none" stroke="#00d4b8" stroke-width="2" stroke-linecap="round"/>
+          <!-- Top text arc -->
+          <path id="top-arc" d="M 20,100 A 80,80 0 0,1 180,100" fill="none"/>
+          <text font-family="sans-serif" font-size="11" font-weight="700" fill="#f5e6d3" letter-spacing="4">
+            <textPath href="#top-arc" startOffset="10%">ORBITNEXUS</textPath>
+          </text>
+          <!-- Bottom text arc -->
+          <path id="bot-arc" d="M 22,105 A 80,80 0 0,0 178,105" fill="none"/>
+          <text font-family="sans-serif" font-size="7.5" font-weight="600" fill="#f5e6d3" letter-spacing="2.5">
+            <textPath href="#bot-arc" startOffset="5%">ASTRONAUT HEALTH MONITORING</textPath>
+          </text>
+        </svg>
+      </div>
+      <div class="hero-year-badge">🚀 NASA Space Apps Hackathon 2026</div>
+      <h1 class="hero-title fade-up-d2">ASTRA</h1>
+      <div class="hero-subtitle fade-up-d3">OrbitNexus</div>
+      <p class="hero-tagline fade-up-d4">
+        Autonomous Space Therapeutics &amp; Risk Analyzer —<br>
+        AI-powered health monitoring for astronauts aboard the ISS.
+      </p>
+      <div class="hero-tags fade-up-d5">
+        <span class="hero-tag">🫀 Vitals AI</span>
+        <span class="hero-tag">🧠 Stress Detection</span>
+        <span class="hero-tag">🏃 Activity Recognition</span>
+        <span class="hero-tag">⚠️ Anomaly Alerts</span>
+        <span class="hero-tag">🧬 Space Bio</span>
+        <span class="hero-tag">🤖 Llama 3.3 70B</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 2 — THE PROBLEM ══ -->
+  <div class="slide" id="slide2">
+    <!-- nebula -->
+    <div class="nebula" style="width:500px;height:500px;bottom:-100px;right:-100px;background:rgba(252,61,33,0.12);"></div>
+
+    <div class="problem-layout">
+      <div class="problem-left">
+        <div class="section-label fade-up">The Challenge</div>
+        <h2 class="problem-title fade-up-d1">Space Is the Most Dangerous Environment for the Human Body</h2>
+        <p class="problem-desc fade-up-d2">
+          Beyond Earth's atmosphere, astronauts face relentless physiological threats — radiation-induced mutations, bone density loss of 1-2% per month, cardiovascular deconditioning, and cognitive stress. 
+          <strong style="color:#fff;">Real-time autonomous health monitoring is not optional — it is mission-critical.</strong>
+        </p>
+        <div class="stat-cards fade-up-d3">
+          <div class="stat-card">
+            <span class="stat-num">1-2%</span>
+            <span class="stat-label">Bone mass lost per month</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num">54%</span>
+            <span class="stat-label">Astronauts with vision changes</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num">400+</span>
+            <span class="stat-label">Days typical ISS mission</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num">24/7</span>
+            <span class="stat-label">Monitoring required</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="astro-visual fade-up-d2">
+        <div class="astro-card">
+          <span class="alert-icon">🧑‍🚀</span>
+          <div class="alert-title">⚠️ HEALTH ANOMALY DETECTED</div>
+          <div class="timeline-item">
+            <div class="tl-dot"></div>
+            <div class="tl-text">Heart rate variability dropped 35% over 72 hours — potential cardiovascular stress.</div>
+          </div>
+          <div class="timeline-item">
+            <div class="tl-dot"></div>
+            <div class="tl-text">Cognitive load elevated for 48 hours — stress response likely space-induced.</div>
+          </div>
+          <div class="timeline-item">
+            <div class="tl-dot"></div>
+            <div class="tl-text">Circadian rhythm disruption detected — 16 sunrises/day distorting sleep cycles.</div>
+          </div>
+          <div class="timeline-item">
+            <div class="tl-dot"></div>
+            <div class="tl-text">Traditional ground-based medicine response time: <strong style="color:var(--nasa-red);">minutes to hours</strong>. ASTRA response: <strong style="color:var(--teal);">real-time.</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 3 — INTRODUCING ASTRA ══ -->
+  <div class="slide" id="slide3">
+    <div class="nebula" style="width:600px;height:600px;top:-150px;left:-150px;background:rgba(0,212,184,0.08);"></div>
+
+    <div class="intro-layout">
+      <div class="astra-logo-ring fade-up">
+        <div class="ring-animate ring-1"></div>
+        <div class="ring-animate ring-2"></div>
+        <div class="ring-animate ring-3"></div>
+        <img id="logo-sm" src="logo.png" alt="ASTRA Logo" class="hero-logo logo-sm" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <svg id="logo-sm-svg" class="logo-svg-fallback logo-sm" style="display:none" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="100" r="98" fill="#1a2744" stroke="#f5e6d3" stroke-width="2"/>
+          <circle cx="100" cy="100" r="80" fill="#1e2d55" stroke="#f5e6d3" stroke-width="1" stroke-dasharray="4,4"/>
+          <circle cx="100" cy="100" r="62" fill="#243360"/>
+          <circle cx="100" cy="95" r="38" fill="url(#pg2)"/>
+          <defs><radialGradient id="pg2" cx="40%" cy="35%"><stop offset="0%" stop-color="#ff9966"/><stop offset="100%" stop-color="#cc4400"/></radialGradient></defs>
+          <ellipse cx="100" cy="95" rx="56" ry="18" fill="none" stroke="#00d4b8" stroke-width="2.5"/>
+          <circle cx="156" cy="95" r="4" fill="#00d4b8"/>
+          <text x="100" y="112" font-family="serif" font-size="48" font-weight="bold" text-anchor="middle" fill="#f5e6d3" opacity="0.95">N</text>
+          <polyline points="40,150 60,150 65,150 70,138 75,162 80,150 100,150 105,150 110,136 115,163 120,150 160,150" fill="none" stroke="#00d4b8" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+
+      <div class="section-label fade-up-d1">The Solution</div>
+      <h2 class="intro-title fade-up-d2">ASTRA</h2>
+      <div class="intro-full-name fade-up-d3">Autonomous Space Therapeutics &amp; Risk Analyzer</div>
+
+      <p class="intro-desc fade-up-d3">
+        A multi-model AI system that continuously analyzes astronaut biometrics using 5 specialized machine learning models — providing real-time health scores, anomaly alerts, and AI-assisted medical decisions, all within a stunning NASA Mission Control dashboard.
+      </p>
+
+      <div class="feature-pills fade-up-d4">
+        <span class="feature-pill"><span class="pill-icon">🫀</span> Real-Time Vitals</span>
+        <span class="feature-pill"><span class="pill-icon">🏃</span> Activity Recognition</span>
+        <span class="feature-pill"><span class="pill-icon">🧠</span> Stress Analysis</span>
+        <span class="feature-pill"><span class="pill-icon">⚠️</span> Anomaly Detection</span>
+        <span class="feature-pill"><span class="pill-icon">🧬</span> Space Bio Model</span>
+        <span class="feature-pill"><span class="pill-icon">🤖</span> AI Medical Assistant</span>
+        <span class="feature-pill"><span class="pill-icon">📊</span> Online Learning</span>
+        <span class="feature-pill"><span class="pill-icon">🖥️</span> Mission Control UI</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 4 — ARCHITECTURE ══ -->
+  <div class="slide" id="slide4">
+    <div class="nebula" style="width:500px;height:500px;top:-100px;right:-100px;background:rgba(123,47,255,0.12);"></div>
+
+    <div class="arch-layout">
+      <div class="section-label fade-up" style="text-align:center;">System Architecture</div>
+      <h2 class="arch-title fade-up-d1">How ASTRA Works</h2>
+      <div class="arch-sub fade-up-d2">5-Model Ensemble · Real-Time Inference · Adaptive Learning</div>
+
+      <div class="arch-grid fade-up-d3">
+        <div class="arch-card">
+          <span class="arch-icon">🫀</span>
+          <div class="arch-name">Heart Rate</div>
+          <div class="arch-algo">ExtraTrees Regressor</div>
+          <span class="arch-score">MAE 1.10</span>
+        </div>
+        <div class="arch-card">
+          <span class="arch-icon">🏃</span>
+          <div class="arch-name">Activity</div>
+          <div class="arch-algo">RandomForest</div>
+          <span class="arch-score">99.62%</span>
+        </div>
+        <div class="arch-card">
+          <span class="arch-icon">🧠</span>
+          <div class="arch-name">Stress</div>
+          <div class="arch-algo">XGBoost</div>
+          <span class="arch-score">89.67%</span>
+        </div>
+        <div class="arch-card">
+          <span class="arch-icon">⚠️</span>
+          <div class="arch-name">Anomaly</div>
+          <div class="arch-algo">IsolationForest</div>
+          <span class="arch-score">3% Contam.</span>
+        </div>
+        <div class="arch-card">
+          <span class="arch-icon">🧬</span>
+          <div class="arch-name">Space Bio</div>
+          <div class="arch-algo">RandomForest</div>
+          <span class="arch-score">100%</span>
+        </div>
+      </div>
+
+      <div class="arch-flow fade-up-d4">
+        <div class="flow-box flow-sensor">🩺 Sensors & IMU</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box flow-astra">⚡ ASTRA Engine</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box flow-llm">🤖 Llama 3.3 70B</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box flow-ui">🖥️ Mission Control</div>
+      </div>
+
+      <div class="fade-up-d5" style="text-align:center;margin-top:18px;">
+        <span style="font-family:'Space Mono',monospace;font-size:0.75rem;color:rgba(255,255,255,0.35);letter-spacing:2px;">
+          Flask + SocketIO · Real-time WebSocket Streaming · Online Learning Adaptive Loop
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 5 — ML MODELS ══ -->
+  <div class="slide" id="slide5">
+    <div class="models-layout">
+      <div class="section-label fade-up" style="text-align:center;">Machine Learning</div>
+      <h2 class="models-title fade-up-d1">5 Specialized AI Models</h2>
+
+      <div class="models-grid fade-up-d2">
+        <div class="model-card m1">
+          <div class="model-header">
+            <span class="model-icon">🫀</span>
+            <div class="model-name">Heart Rate Estimation</div>
+          </div>
+          <div class="model-body">
+            <div class="model-metric">1.10</div>
+            <div class="model-metric-label">MAE (BPM) · R²=0.935</div>
+            <div class="model-dataset">BIDMC PPG · PhysioNet</div>
+          </div>
+        </div>
+        <div class="model-card m2">
+          <div class="model-header">
+            <span class="model-icon">🏃</span>
+            <div class="model-name">Activity Recognition</div>
+          </div>
+          <div class="model-body">
+            <div class="model-metric">99.62%</div>
+            <div class="model-metric-label">Accuracy · 12 Classes</div>
+            <div class="model-dataset">PAMAP2 · UCI · 119K samples</div>
+          </div>
+        </div>
+        <div class="model-card m3">
+          <div class="model-header">
+            <span class="model-icon">🧠</span>
+            <div class="model-name">Stress Detection</div>
+          </div>
+          <div class="model-body">
+            <div class="model-metric">89.67%</div>
+            <div class="model-metric-label">Accuracy · Cognitive Load</div>
+            <div class="model-dataset">WESAD · Physio Signals</div>
+          </div>
+        </div>
+        <div class="model-card m4">
+          <div class="model-header">
+            <span class="model-icon">⚠️</span>
+            <div class="model-name">Anomaly Detection</div>
+          </div>
+          <div class="model-body">
+            <div class="model-metric">3%</div>
+            <div class="model-metric-label">Contamination Threshold</div>
+            <div class="model-dataset">Synthetic Vitals · IsoForest</div>
+          </div>
+        </div>
+        <div class="model-card m5">
+          <div class="model-header">
+            <span class="model-icon">🧬</span>
+            <div class="model-name">Space Bio Adaptation</div>
+          </div>
+          <div class="model-body">
+            <div class="model-metric">100%</div>
+            <div class="model-metric-label">Accuracy · Genomics</div>
+            <div class="model-dataset">NASA OSD-178 · GeneLab</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="data-row fade-up-d3">
+        <div class="data-item">
+          <div class="data-num">119K+</div>
+          <div class="data-label">Training Samples</div>
+        </div>
+        <div class="data-divider"></div>
+        <div class="data-item">
+          <div class="data-num">5</div>
+          <div class="data-label">AI Models</div>
+        </div>
+        <div class="data-divider"></div>
+        <div class="data-item">
+          <div class="data-num">4</div>
+          <div class="data-label">Public Datasets</div>
+        </div>
+        <div class="data-divider"></div>
+        <div class="data-item">
+          <div class="data-num">Real-Time</div>
+          <div class="data-label">Inference Speed</div>
+        </div>
+        <div class="data-divider"></div>
+        <div class="data-item">
+          <div class="data-num">Online</div>
+          <div class="data-label">Adaptive Learning</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 6 — AI ASSISTANT ══ -->
+  <div class="slide" id="slide6">
+    <div class="nebula" style="width:500px;height:500px;top:-100px;left:-50px;background:rgba(123,47,255,0.15);"></div>
+
+    <div class="ai-layout">
+      <div class="ai-left">
+        <div class="section-label fade-up">AI Medical Assistant</div>
+        <h2 class="ai-title fade-up-d1">Llama 3.3 70B — Your AI Space Doctor</h2>
+        <p class="ai-desc fade-up-d2">
+          Powered by Meta's Llama 3.3 70B via Groq's ultra-fast inference, ASTRA's AI assistant provides expert-level space medicine guidance, interprets biometric anomalies, and recommends countermeasures — all in natural language.
+        </p>
+        <div class="ai-features fade-up-d3">
+          <div class="ai-feat">
+            <span class="ai-feat-icon">🩺</span>
+            <span class="ai-feat-text">Real-time health context injection from live sensor data</span>
+          </div>
+          <div class="ai-feat">
+            <span class="ai-feat-icon">💬</span>
+            <span class="ai-feat-text">Natural language medical Q&A — trained on space medicine protocols</span>
+          </div>
+          <div class="ai-feat">
+            <span class="ai-feat-icon">⚡</span>
+            <span class="ai-feat-text">Sub-second response via Groq LPU™ inference engine</span>
+          </div>
+          <div class="ai-feat">
+            <span class="ai-feat-icon">🔄</span>
+            <span class="ai-feat-text">Persistent context memory across the entire mission session</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-mockup fade-up-d2" style="animation:slideLeft 0.8s 0.3s ease both;">
+        <div class="chat-header">
+          <div class="chat-status-dot"></div>
+          <div class="chat-title-sm">ASTRA MEDICAL AI · LLAMA 3.3 70B</div>
+        </div>
+        <div class="chat-body">
+          <div class="msg msg-user">
+            <div class="msg-label">Commander Chen</div>
+            My heart rate has been elevated for 6 hours. Should I be concerned?
+          </div>
+          <div class="msg msg-astra">
+            <div class="msg-label">ASTRA AI</div>
+            Based on your current telemetry: HR 94 BPM (baseline 68), SpO₂ 97%, elevated cortisol markers — this pattern is consistent with <strong style="color:#b87fff;">space adaptation stress response</strong>. I recommend 20 min of structured breathing exercises and reviewing sleep logs. No immediate medical intervention required, but I'll increase monitoring frequency for the next 12 hours. Want me to initiate a relaxation protocol?
+          </div>
+          <div class="msg msg-user">
+            <div class="msg-label">Commander Chen</div>
+            Yes, please. Also — what's my radiation exposure status?
+          </div>
+          <div class="msg msg-astra">
+            <div class="msg-label">ASTRA AI</div>
+            <div class="typing-indicator">
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 7 — DASHBOARD ══ -->
+  <div class="slide" id="slide7">
+    <div class="dashboard-layout">
+      <div class="section-label fade-up" style="text-align:center;">Mission Control Interface</div>
+      <h2 class="dash-title fade-up-d1">The ASTRA Dashboard</h2>
+      <div class="dash-sub fade-up-d2">NASA-Inspired · Real-Time · WebSocket Streaming</div>
+
+      <div class="mock-dashboard fade-up-d3">
+        <div class="scan-overlay"></div>
+        <div class="mock-topbar">
+          <div class="mock-brand">⚡ ASTRA MISSION CONTROL</div>
+          <div class="mock-status">
+            <span class="mock-status-item"><div class="mock-status-dot"></div> SYSTEMS NOMINAL</span>
+            <span class="mock-status-item">🛰️ ISS ORBIT DAY 127</span>
+            <span class="mock-status-item">🕐 MET: 127:14:32:08</span>
+          </div>
+        </div>
+        <div class="mock-body">
+          <!-- Vitals -->
+          <div class="mock-vital">
+            <div class="mock-vital-label">Heart Rate</div>
+            <div class="mock-vital-val v-hr">82 <span class="mock-vital-unit">BPM</span></div>
+          </div>
+          <div class="mock-vital">
+            <div class="mock-vital-label">SpO₂</div>
+            <div class="mock-vital-val v-spo2">97.4 <span class="mock-vital-unit">%</span></div>
+          </div>
+          <div class="mock-vital">
+            <div class="mock-vital-label">Stress Level</div>
+            <div class="mock-vital-val v-stress">MED <span class="mock-vital-unit">45%</span></div>
+          </div>
+          <div class="mock-vital">
+            <div class="mock-vital-label">Activity</div>
+            <div class="mock-vital-val v-activity">🏃 Walking</div>
+          </div>
+
+          <!-- ECG Graph -->
+          <div class="mock-graph">
+            <div class="mock-graph-label">ECG / PPG Signal — Live</div>
+            <svg class="ecg-svg" viewBox="0 0 400 50" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+              <defs>
+                <filter id="glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              </defs>
+              <polyline
+                points="0,30 20,30 25,30 30,10 35,45 40,30 55,30 60,30 65,8 70,45 75,30 90,30 95,30 100,10 105,45 110,30 125,30 130,30 135,8 140,45 145,30 160,30 165,30 170,10 175,45 180,30 195,30 200,30 205,8 210,45 215,30 230,30 235,30 240,10 245,45 250,30 265,30 270,30 275,8 280,45 285,30 300,30 305,30 310,10 315,45 320,30 335,30 340,30 345,8 350,45 355,30 370,30 375,30 380,10 385,45 390,30 400,30"
+                fill="none" stroke="#ff6b6b" stroke-width="1.5" filter="url(#glow)" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <!-- Anomaly Alert -->
+          <div class="mock-alert">
+            <div class="alert-anim">⚠️</div>
+            <div class="alert-text">
+              <strong>ANOMALY DETECTED</strong> — Bone density biosignal variance flagged at T+127d. 
+              IsolationForest confidence: 94.2% | Recommended: Resistance training protocol.
+            </div>
+          </div>
+
+          <!-- AI Row -->
+          <div class="mock-ai-row">
+            <div class="ai-chip">🤖 LLAMA 3.3 70B</div>
+            <span>"Based on current vitals and Day 127 adaptation profile, all systems within acceptable mission parameters. Recommend light EVA prep exercises at 14:00 MET."</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 8 — DATA SOURCES ══ -->
+  <div class="slide" id="slide8">
+    <div class="nebula" style="width:600px;height:600px;bottom:-200px;left:50%;transform:translateX(-50%);background:rgba(0,207,255,0.08);"></div>
+
+    <div class="data-layout">
+      <div class="section-label fade-up" style="text-align:center;">Scientific Foundation</div>
+      <h2 class="data-title fade-up-d1">World-Class Training Data</h2>
+      <p class="data-desc fade-up-d2">ASTRA is trained on 4 internationally recognized scientific datasets — from PhysioNet to NASA's own GeneLab.</p>
+
+      <div class="sources-grid fade-up-d3">
+        <div class="source-card">
+          <div class="source-icon">🏃</div>
+          <div>
+            <div class="source-name">PAMAP2 Dataset</div>
+            <div class="source-desc">Physical Activity Monitoring with IMU sensors. 119,000+ samples across 18 activities from UCI Machine Learning Repository — the gold standard for activity recognition.</div>
+            <span class="source-badge">119K+ SAMPLES · UCI</span>
+          </div>
+        </div>
+        <div class="source-card">
+          <div class="source-icon">💓</div>
+          <div>
+            <div class="source-name">BIDMC PPG Dataset</div>
+            <div class="source-desc">Beth Israel Deaconess Medical Center PPG and respiration signals from PhysioNet. Used to train our ExtraTrees heart rate estimator achieving MAE of 1.10 BPM.</div>
+            <span class="source-badge">PHYSIONET · BIDMC</span>
+          </div>
+        </div>
+        <div class="source-card">
+          <div class="source-icon">😤</div>
+          <div>
+            <div class="source-name">WESAD Dataset</div>
+            <div class="source-desc">Wearable Stress and Affect Detection dataset from UCI — multi-modal physiological signals (EDA, BVP, Temp) from wrist and chest sensors for stress classification.</div>
+            <span class="source-badge">WESAD · PHYSIO SIGNALS</span>
+          </div>
+        </div>
+        <div class="source-card">
+          <div class="source-icon">🧬</div>
+          <div>
+            <div class="source-name">NASA OSD-178 GeneLab</div>
+            <div class="source-desc">Official NASA Open Science Data Repository — spaceflight genomics study. Rodent transcriptomics from ISS missions. The only space-validated biological adaptation dataset.</div>
+            <span class="source-badge">NASA OFFICIAL · OSDR</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="total-samples fade-up-d4">
+        <div class="total-num">119K+</div>
+        <div class="total-label">Total Training<br>Samples Used</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 9 — IMPACT & ROADMAP ══ -->
+  <div class="slide" id="slide9">
+    <div class="impact-layout">
+      <div>
+        <div class="section-label fade-up">Impact & Vision</div>
+        <h2 class="impact-title fade-up-d1">Protecting Humanity's Greatest Explorers</h2>
+        <p class="impact-desc fade-up-d2">
+          ASTRA isn't just a hackathon project — it's a vision for the future of human spaceflight health infrastructure. Here's why it matters.
+        </p>
+        <div class="impact-items fade-up-d3">
+          <div class="impact-item">
+            <span class="impact-icon">🚀</span>
+            <span class="impact-text">Enable longer missions to Moon and Mars by providing continuous autonomous health oversight without ground control latency.</span>
+          </div>
+          <div class="impact-item">
+            <span class="impact-icon">⚡</span>
+            <span class="impact-text">Real-time anomaly detection can catch life-threatening conditions seconds after onset — not hours.</span>
+          </div>
+          <div class="impact-item">
+            <span class="impact-icon">🧠</span>
+            <span class="impact-text">AI-assisted decisions reduce cognitive load on crew, freeing mental resources for critical mission tasks.</span>
+          </div>
+          <div class="impact-item">
+            <span class="impact-icon">🌍</span>
+            <span class="impact-text">Technology spinoffs — monitoring systems applicable to ICUs, remote healthcare, and extreme environments on Earth.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="fade-up-d2">
+        <div class="roadmap-title">🗺️ Roadmap</div>
+        <div class="roadmap">
+          <div class="roadmap-item">
+            <div class="rm-dot rm-dot-1">✓</div>
+            <div class="rm-content">
+              <div class="rm-phase">Phase 1 — Complete</div>
+              <div class="rm-text">5 ML models trained & deployed with real-time dashboard</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="rm-dot rm-dot-2">2</div>
+            <div class="rm-content">
+              <div class="rm-phase">Phase 2 — Next</div>
+              <div class="rm-text">Wearable hardware integration (Shimmer3 biosensors, Apple Watch)</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="rm-dot rm-dot-3">3</div>
+            <div class="rm-content">
+              <div class="rm-phase">Phase 3 — Future</div>
+              <div class="rm-text">NASA HERA analog mission pilot — 30-day isolation study</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="rm-dot rm-dot-4">4</div>
+            <div class="rm-content">
+              <div class="rm-phase">Phase 4 — Dream</div>
+              <div class="rm-text">ISS integration — ASTRA as onboard autonomous medical system</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 10 — CLOSING CTA ══ -->
+  <div class="slide" id="slide10">
+    <div class="orbit-ring" style="z-index:1;"></div>
+    <div class="orbit-ring orbit-ring2" style="z-index:1;"></div>
+    <div class="nebula" style="width:700px;height:700px;top:50%;left:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(0,212,184,0.12),rgba(123,47,255,0.08));"></div>
+
+    <div class="cta-content" style="z-index:2;">
+      <img id="logo-cta" src="logo.png" alt="OrbitNexus" class="cta-logo fade-up" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <svg id="logo-cta-svg" class="logo-svg-fallback logo-cta fade-up" style="display:none;animation:float 4s ease-in-out infinite;margin-bottom:30px;border:3px solid rgba(0,212,184,0.5);" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="100" cy="100" r="98" fill="#1a2744" stroke="#f5e6d3" stroke-width="2"/>
+        <circle cx="100" cy="100" r="80" fill="#1e2d55" stroke="#f5e6d3" stroke-width="1" stroke-dasharray="4,4"/>
+        <circle cx="100" cy="100" r="62" fill="#243360"/>
+        <circle cx="100" cy="95" r="38" fill="url(#pg3)"/>
+        <defs><radialGradient id="pg3" cx="40%" cy="35%"><stop offset="0%" stop-color="#ff9966"/><stop offset="100%" stop-color="#cc4400"/></radialGradient></defs>
+        <ellipse cx="100" cy="95" rx="56" ry="18" fill="none" stroke="#00d4b8" stroke-width="2.5"/>
+        <circle cx="156" cy="95" r="4" fill="#00d4b8"/>
+        <text x="100" y="112" font-family="serif" font-size="48" font-weight="bold" text-anchor="middle" fill="#f5e6d3" opacity="0.95">N</text>
+        <polyline points="40,150 60,150 65,150 70,138 75,162 80,150 100,150 105,150 110,136 115,163 120,150 160,150" fill="none" stroke="#00d4b8" stroke-width="2" stroke-linecap="round"/>
+        <path id="top-arc3" d="M 20,100 A 80,80 0 0,1 180,100" fill="none"/>
+        <text font-family="sans-serif" font-size="11" font-weight="700" fill="#f5e6d3" letter-spacing="4"><textPath href="#top-arc3" startOffset="10%">ORBITNEXUS</textPath></text>
+        <path id="bot-arc3" d="M 22,105 A 80,80 0 0,0 178,105" fill="none"/>
+        <text font-family="sans-serif" font-size="7.5" font-weight="600" fill="#f5e6d3" letter-spacing="2.5"><textPath href="#bot-arc3" startOffset="5%">ASTRONAUT HEALTH MONITORING</textPath></text>
+      </svg>
+
+
+      <p class="cta-quote fade-up-d1">
+        <strong>"That's one small step for a machine,</strong><br>
+        one giant leap for astronaut health."
+      </p>
+      <div class="cta-attr fade-up-d2">— Team OrbitNexus, 2026</div>
+
+      <h2 class="cta-title fade-up-d3">FOR ALL MANKIND</h2>
+      <p class="cta-sub fade-up-d4">ASTRA · Autonomous Space Therapeutics &amp; Risk Analyzer</p>
+
+      <div class="cta-team fade-up-d5">
+        🛸 Team OrbitNexus
+      </div>
+      <div class="cta-hackathon fade-up-d6">NASA SPACE APPS HACKATHON 2026 · ASTRONAUT HEALTH MONITORING</div>
+    </div>
+  </div>
+
+</div><!-- /slides-wrapper -->
+
+
+<script>
+/* ═══════════════════════════════════════════
+   STARFIELD
+═══════════════════════════════════════════ */
+(function() {
+  const canvas = document.getElementById('starfield');
+  const ctx = canvas.getContext('2d');
+  let W, H, stars = [], meteors = [];
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function initStars(n) {
+    stars = [];
+    for (let i = 0; i < n; i++) {
+      stars.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.5 + 0.3,
+        a: Math.random(),
+        da: (Math.random() - 0.5) * 0.008,
+        color: Math.random() < 0.1 ? '#a8e6ff' : (Math.random() < 0.08 ? '#ffe0a0' : '#ffffff')
+      });
+    }
+  }
+
+  function spawnMeteor() {
+    meteors.push({
+      x: Math.random() * W * 1.5,
+      y: Math.random() * H * 0.5,
+      len: 80 + Math.random() * 120,
+      speed: 8 + Math.random() * 12,
+      a: 1,
+      da: 0.025,
+      angle: Math.PI / 6 + Math.random() * 0.3
+    });
+  }
+
+  function drawStars() {
+    ctx.clearRect(0, 0, W, H);
+    // fill bg
+    ctx.fillStyle = '#020917';
+    ctx.fillRect(0, 0, W, H);
+
+    stars.forEach(s => {
+      s.a += s.da;
+      if (s.a > 1 || s.a < 0.2) s.da *= -1;
+      ctx.save();
+      ctx.globalAlpha = s.a * 0.9;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = s.color;
+      ctx.shadowColor = s.color;
+      ctx.shadowBlur = s.r > 1.2 ? 6 : 0;
+      ctx.fill();
+      ctx.restore();
+    });
+
+    meteors.forEach((m, i) => {
+      ctx.save();
+      ctx.globalAlpha = m.a;
+      ctx.translate(m.x, m.y);
+      ctx.rotate(m.angle);
+      const grad = ctx.createLinearGradient(0, 0, m.len, 0);
+      grad.addColorStop(0, 'rgba(255,255,255,0)');
+      grad.addColorStop(1, 'rgba(180,230,255,0.9)');
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(m.len, 0);
+      ctx.stroke();
+      ctx.restore();
+      m.x += Math.cos(m.angle) * m.speed;
+      m.y += Math.sin(m.angle) * m.speed;
+      m.a -= m.da;
+      if (m.a <= 0) meteors.splice(i, 1);
+    });
+
+    requestAnimationFrame(drawStars);
+  }
+
+  resize();
+  initStars(220);
+  drawStars();
+  window.addEventListener('resize', () => { resize(); initStars(220); });
+  setInterval(spawnMeteor, 3000);
+  setTimeout(spawnMeteor, 500);
+})();
+
+/* ═══════════════════════════════════════════
+   SLIDE SYSTEM
+═══════════════════════════════════════════ */
+const slides = document.querySelectorAll('.slide');
+const totalSlides = slides.length;
+let current = 0;
+let isAnimating = false;
+
+// Build nav dots
+const dotsContainer = document.getElementById('navDots');
+slides.forEach((_, i) => {
+  const dot = document.createElement('div');
+  dot.className = 'dot' + (i === 0 ? ' active' : '');
+  dot.onclick = () => goToSlide(i);
+  dotsContainer.appendChild(dot);
+});
+
+function updateUI() {
+  const dots = document.querySelectorAll('.dot');
+  dots.forEach((d, i) => d.classList.toggle('active', i === current));
+  document.getElementById('progressBar').style.width = ((current + 1) / totalSlides * 100) + '%';
+  document.getElementById('slideCounter').textContent =
+    String(current + 1).padStart(2, '0') + ' / ' + String(totalSlides).padStart(2, '0');
+  document.getElementById('prevBtn').style.opacity = current === 0 ? '0.3' : '1';
+  document.getElementById('nextBtn').style.opacity = current === totalSlides - 1 ? '0.3' : '1';
+}
+
+function goToSlide(index) {
+  if (isAnimating || index === current) return;
+  if (index < 0 || index >= totalSlides) return;
+  isAnimating = true;
+
+  slides[current].classList.remove('active');
+  slides[current].classList.add('exit');
+
+  setTimeout(() => {
+    slides[current].classList.remove('exit');
+    current = index;
+    slides[current].classList.add('active');
+    // re-trigger animations
+    slides[current].querySelectorAll('[class*="fade-up"]').forEach(el => {
+      const cls = el.className;
+      el.className = el.className; // force reflow
+      void el.offsetWidth;
+    });
+    updateUI();
+    setTimeout(() => { isAnimating = false; }, 100);
+  }, 400);
+}
+
+function changeSlide(dir) {
+  goToSlide(current + dir);
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); changeSlide(1); }
+  if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); changeSlide(-1); }
+});
+
+// Scroll wheel
+let scrollTimeout;
+document.addEventListener('wheel', e => {
+  if (scrollTimeout) return;
+  scrollTimeout = setTimeout(() => { scrollTimeout = null; }, 800);
+  if (e.deltaY > 30) changeSlide(1);
+  else if (e.deltaY < -30) changeSlide(-1);
+}, { passive: true });
+
+// Touch swipe
+let touchStartY = 0;
+document.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, { passive: true });
+document.addEventListener('touchend', e => {
+  const dy = touchStartY - e.changedTouches[0].clientY;
+  if (Math.abs(dy) > 50) changeSlide(dy > 0 ? 1 : -1);
+}, { passive: true });
+
+updateUI();
+
+/* ═══════════════════════════════════════════
+   ANIMATED COUNTERS (slide 5)
+═══════════════════════════════════════════ */
+function animateNumber(el, end, decimals, suffix, duration) {
+  let start = 0;
+  const startTime = performance.now();
+  function step(now) {
+    const p = Math.min((now - startTime) / duration, 1);
+    const val = p * end;
+    el.textContent = val.toFixed(decimals) + (suffix || '');
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// Observer to trigger animations when slide 5 becomes active
+const observer5 = new MutationObserver(() => {
+  if (slides[4].classList.contains('active')) {
+    setTimeout(() => {
+      const metrics = slides[4].querySelectorAll('.model-metric');
+      const vals = [
+        { v:1.10, d:2, s:'' },
+        { v:99.62, d:2, s:'%' },
+        { v:89.67, d:2, s:'%' },
+        { v:3, d:0, s:'%' },
+        { v:100, d:0, s:'%' }
+      ];
+      metrics.forEach((el, i) => {
+        if (vals[i]) animateNumber(el, vals[i].v, vals[i].d, vals[i].s, 1200);
+      });
+    }, 400);
+  }
+});
+observer5.observe(slides[4], { attributes: true, attributeFilter: ['class'] });
+
+</script>
+</body>
+</html>

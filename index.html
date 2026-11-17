@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OrbitNexus — ASTRA | NASA Space Apps 2026</title>
+<title>OrbitNexus | Brahmam Global Innovation Grand Challenge 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -1495,6 +1495,31 @@
   }
 
 </style>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ===== DEEP SPACE HUD THEME ===== */
+:root{--bg:#04060c;--ice:#8fd8ff;--amber:#ffb454;--line:rgba(143,216,255,.22);--teal:#8fd8ff;--cyan:#8fd8ff;--teal-glow:rgba(143,216,255,.25)}
+html,body{background:var(--bg)!important}
+.slide{background:radial-gradient(ellipse 80% 60% at 75% 10%,rgba(40,80,140,.28),transparent 60%),radial-gradient(ellipse 60% 50% at 10% 90%,rgba(90,40,120,.18),transparent 60%),var(--bg)!important}
+.slide::after{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(143,216,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(143,216,255,.045) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse at center,#000 30%,transparent 80%);-webkit-mask-image:radial-gradient(ellipse at center,#000 30%,transparent 80%);pointer-events:none;z-index:0}
+.slide>*{z-index:1}
+#slidesWrapper h1,#slidesWrapper h2,#slidesWrapper .glow-title{font-family:'Space Grotesk','Inter',sans-serif!important;font-weight:700!important;letter-spacing:-.02em;background:linear-gradient(180deg,#fff 30%,#9fb8d6)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;filter:none!important}
+#slidesWrapper .section-label{font-family:'JetBrains Mono',monospace!important;color:var(--amber)!important;letter-spacing:.28em;font-size:12px}
+#slidesWrapper .section-label::before{content:"// ";color:var(--amber)}
+.glass,.glass-dark,.arch-card,.model-card,.source-card,[class*="-card"]{background:linear-gradient(160deg,rgba(14,24,42,.78),rgba(6,10,20,.78))!important;border:1px solid var(--line)!important;border-radius:4px!important;backdrop-filter:blur(10px);box-shadow:0 0 0 1px rgba(0,0,0,.4),0 20px 50px -20px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.05)!important;position:relative}
+.glass::before,.model-card::before,.source-card::before{content:"";position:absolute;top:-1px;left:-1px;width:14px;height:14px;border-top:2px solid var(--ice);border-left:2px solid var(--ice);pointer-events:none}
+.glass::after,.model-card::after,.source-card::after{content:"";position:absolute;bottom:-1px;right:-1px;width:14px;height:14px;border-bottom:2px solid var(--ice);border-right:2px solid var(--ice);pointer-events:none}
+#slidesWrapper .model-metric,#slidesWrapper .arch-score{font-family:'JetBrains Mono',monospace!important;color:var(--ice)!important;-webkit-text-fill-color:var(--ice)!important}
+#slidesWrapper [style*="var(--teal)"]{color:var(--ice)!important}
+.nav-btn{left:auto!important;right:28px!important;transform:none!important;border-radius:2px!important;background:rgba(14,24,42,.8)!important;border:1px solid var(--line)!important}
+#prevBtn{bottom:84px!important}#nextBtn{bottom:28px!important}
+.slide-counter{left:28px!important;transform:none!important;bottom:28px!important;font-family:'JetBrains Mono',monospace;letter-spacing:.2em;color:var(--ice)!important}
+.progress-bar{background:linear-gradient(90deg,var(--ice),var(--amber))!important;height:3px}
+.dot{border-radius:1px!important}
+#slidesWrapper .hero-logo-wrap{display:block!important;margin:0 auto 28px!important;width:160px;position:relative;left:auto!important;transform:none}
+#slidesWrapper .hero-logo{filter:drop-shadow(0 0 30px rgba(143,216,255,.45))!important;border-color:rgba(143,216,255,.5)!important}
+
+</style>
 </head>
 <body>
 
@@ -1505,7 +1530,7 @@
 <div class="progress-bar" id="progressBar"></div>
 
 <!-- SLIDE COUNTER -->
-<div class="slide-counter" id="slideCounter">01 / 10</div>
+<div class="slide-counter" id="slideCounter">01 / 14</div>
 
 <!-- NAV DOTS -->
 <div class="nav-dots" id="navDots"></div>
@@ -1562,12 +1587,12 @@
           </text>
         </svg>
       </div>
-      <div class="hero-year-badge">🚀 NASA Space Apps Hackathon 2026</div>
+      <div class="hero-year-badge">🚀 Brahmam Global Innovation Grand Challenge 2026</div>
       <h1 class="hero-title fade-up-d2">ASTRA</h1>
       <div class="hero-subtitle fade-up-d3">OrbitNexus</div>
       <p class="hero-tagline fade-up-d4">
         Autonomous Space Therapeutics &amp; Risk Analyzer —<br>
-        AI-powered health monitoring for astronauts aboard the ISS.
+        AI-assisted health awareness for astronauts on long-duration space missions.
       </p>
       <div class="hero-tags fade-up-d5">
         <span class="hero-tag">🫀 Vitals AI</span>
@@ -1666,7 +1691,7 @@
       <div class="intro-full-name fade-up-d3">Autonomous Space Therapeutics &amp; Risk Analyzer</div>
 
       <p class="intro-desc fade-up-d3">
-        A multi-model AI system that continuously analyzes astronaut biometrics using 5 specialized machine learning models — providing real-time health scores, anomaly alerts, and AI-assisted medical decisions, all within a stunning NASA Mission Control dashboard.
+        A multi-model AI system that continuously analyzes astronaut biometrics using 5 specialized machine learning models — providing real-time health scores, anomaly alerts, and AI-assisted medical decisions, all within a mission-control-style dashboard. A research prototype for health awareness, not a diagnostic system.
       </p>
 
       <div class="feature-pills fade-up-d4">
@@ -1720,7 +1745,7 @@
           <span class="arch-icon">🧬</span>
           <div class="arch-name">Space Bio</div>
           <div class="arch-algo">RandomForest</div>
-          <span class="arch-score">100%</span>
+          <span class="arch-score">Exploratory</span>
         </div>
       </div>
 
@@ -1744,6 +1769,7 @@
 
   <!-- ══ SLIDE 5 — ML MODELS ══ -->
   <div class="slide" id="slide5">
+    <div style="position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:12px;opacity:.7;z-index:5">Scores are file-reported prototype benchmarks, not independent clinical validation. Several models use synthetic inputs.</div>
     <div class="models-layout">
       <div class="section-label fade-up" style="text-align:center;">Machine Learning</div>
       <h2 class="models-title fade-up-d1">5 Specialized AI Models</h2>
@@ -1799,9 +1825,9 @@
             <div class="model-name">Space Bio Adaptation</div>
           </div>
           <div class="model-body">
-            <div class="model-metric">100%</div>
-            <div class="model-metric-label">Accuracy · Genomics</div>
-            <div class="model-dataset">NASA OSD-178 · GeneLab</div>
+            <div class="model-metric" style="font-size:1.6rem">Exploratory</div>
+            <div class="model-metric-label">Separate cell-culture task</div>
+            <div class="model-dataset">NASA OSD-178 · OSDR</div>
           </div>
         </div>
       </div>
@@ -1842,7 +1868,7 @@
     <div class="ai-layout">
       <div class="ai-left">
         <div class="section-label fade-up">AI Medical Assistant</div>
-        <h2 class="ai-title fade-up-d1">Llama 3.3 70B — Your AI Space Doctor</h2>
+        <h2 class="ai-title fade-up-d1">Llama 3.3 70B — Your AI Health Assistant</h2>
         <p class="ai-desc fade-up-d2">
           Powered by Meta's Llama 3.3 70B via Groq's ultra-fast inference, ASTRA's AI assistant provides expert-level space medicine guidance, interprets biometric anomalies, and recommends countermeasures — all in natural language.
         </p>
@@ -1902,15 +1928,15 @@
     <div class="dashboard-layout">
       <div class="section-label fade-up" style="text-align:center;">Mission Control Interface</div>
       <h2 class="dash-title fade-up-d1">The ASTRA Dashboard</h2>
-      <div class="dash-sub fade-up-d2">NASA-Inspired · Real-Time · WebSocket Streaming</div>
+      <div class="dash-sub fade-up-d2">Mission-control-style · Real-Time · Simulated demo data</div>
 
       <div class="mock-dashboard fade-up-d3">
         <div class="scan-overlay"></div>
         <div class="mock-topbar">
-          <div class="mock-brand">⚡ ASTRA MISSION CONTROL</div>
+          <div class="mock-brand">⚡ ORBITNEXUS MISSION CONTROL</div>
           <div class="mock-status">
             <span class="mock-status-item"><div class="mock-status-dot"></div> SYSTEMS NOMINAL</span>
-            <span class="mock-status-item">🛰️ ISS ORBIT DAY 127</span>
+            <span class="mock-status-item">🛰️ SIMULATED · DAY 127</span>
             <span class="mock-status-item">🕐 MET: 127:14:32:08</span>
           </div>
         </div>
@@ -1951,7 +1977,7 @@
             <div class="alert-anim">⚠️</div>
             <div class="alert-text">
               <strong>ANOMALY DETECTED</strong> — Bone density biosignal variance flagged at T+127d. 
-              IsolationForest confidence: 94.2% | Recommended: Resistance training protocol.
+              IsolationForest confidence: 94.2% | Suggested: remeasure and review (not a diagnosis).
             </div>
           </div>
 
@@ -1971,15 +1997,15 @@
 
     <div class="data-layout">
       <div class="section-label fade-up" style="text-align:center;">Scientific Foundation</div>
-      <h2 class="data-title fade-up-d1">World-Class Training Data</h2>
-      <p class="data-desc fade-up-d2">ASTRA is trained on 4 internationally recognized scientific datasets — from PhysioNet to NASA's own GeneLab.</p>
+      <h2 class="data-title fade-up-d1">Public Research Datasets</h2>
+      <p class="data-desc fade-up-d2">ASTRA is trained on 4 public research datasets, each used for its own task, from PhysioNet to NASA's Open Science Data Repository.</p>
 
       <div class="sources-grid fade-up-d3">
         <div class="source-card">
           <div class="source-icon">🏃</div>
           <div>
             <div class="source-name">PAMAP2 Dataset</div>
-            <div class="source-desc">Physical Activity Monitoring with IMU sensors. 119,000+ samples across 18 activities from UCI Machine Learning Repository — the gold standard for activity recognition.</div>
+            <div class="source-desc">Physical Activity Monitoring with IMU sensors. 119,000+ samples across 18 activities from UCI Machine Learning Repository.</div>
             <span class="source-badge">119K+ SAMPLES · UCI</span>
           </div>
         </div>
@@ -2002,9 +2028,9 @@
         <div class="source-card">
           <div class="source-icon">🧬</div>
           <div>
-            <div class="source-name">NASA OSD-178 GeneLab</div>
-            <div class="source-desc">Official NASA Open Science Data Repository — spaceflight genomics study. Rodent transcriptomics from ISS missions. The only space-validated biological adaptation dataset.</div>
-            <span class="source-badge">NASA OFFICIAL · OSDR</span>
+            <div class="source-name">NASA OSD-178</div>
+            <div class="source-desc">NASA Open Science Data Repository study of human IMR90 cells in a 0.5 Gy alpha-particle radiation experiment. Used only for a separate exploratory biology analysis, not for wearable inference.</div>
+            <span class="source-badge">NASA OSDR · PUBLIC DATA</span>
           </div>
         </div>
       </div>
@@ -2023,16 +2049,16 @@
         <div class="section-label fade-up">Impact & Vision</div>
         <h2 class="impact-title fade-up-d1">Protecting Humanity's Greatest Explorers</h2>
         <p class="impact-desc fade-up-d2">
-          ASTRA isn't just a hackathon project — it's a vision for the future of human spaceflight health infrastructure. Here's why it matters.
+          OrbitNexus is a research prototype with a path toward safer, more autonomous health awareness. Here's why it matters.
         </p>
         <div class="impact-items fade-up-d3">
           <div class="impact-item">
             <span class="impact-icon">🚀</span>
-            <span class="impact-text">Enable longer missions to Moon and Mars by providing continuous autonomous health oversight without ground control latency.</span>
+            <span class="impact-text">Support crew autonomy on long missions by giving clear health context when Earth cannot answer immediately.</span>
           </div>
           <div class="impact-item">
             <span class="impact-icon">⚡</span>
-            <span class="impact-text">Real-time anomaly detection can catch life-threatening conditions seconds after onset — not hours.</span>
+            <span class="impact-text">Local analysis can flag unusual readings without waiting for a round trip to Earth.</span>
           </div>
           <div class="impact-item">
             <span class="impact-icon">🧠</span>
@@ -2052,28 +2078,28 @@
             <div class="rm-dot rm-dot-1">✓</div>
             <div class="rm-content">
               <div class="rm-phase">Phase 1 — Complete</div>
-              <div class="rm-text">5 ML models trained & deployed with real-time dashboard</div>
+              <div class="rm-text">Prototype: 5 ML models, dashboard, simulator, 12 passing software tests</div>
             </div>
           </div>
           <div class="roadmap-item">
             <div class="rm-dot rm-dot-2">2</div>
             <div class="rm-content">
               <div class="rm-phase">Phase 2 — Next</div>
-              <div class="rm-text">Wearable hardware integration (Shimmer3 biosensors, Apple Watch)</div>
+              <div class="rm-text">Validate one wearable end to end; re-evaluate models on held-out participants</div>
             </div>
           </div>
           <div class="roadmap-item">
             <div class="rm-dot rm-dot-3">3</div>
             <div class="rm-content">
               <div class="rm-phase">Phase 3 — Future</div>
-              <div class="rm-text">NASA HERA analog mission pilot — 30-day isolation study</div>
+              <div class="rm-text">Analog-environment pilot under an approved protocol, with expert review</div>
             </div>
           </div>
           <div class="roadmap-item">
             <div class="rm-dot rm-dot-4">4</div>
             <div class="rm-content">
               <div class="rm-phase">Phase 4 — Dream</div>
-              <div class="rm-text">ISS integration — ASTRA as onboard autonomous medical system</div>
+              <div class="rm-text">Mission and remote-health partnerships, subject to validation and regulatory approval</div>
             </div>
           </div>
         </div>
@@ -2081,8 +2107,40 @@
     </div>
   </div>
 
-  <!-- ══ SLIDE 10 — CLOSING CTA ══ -->
   <div class="slide" id="slide10">
+    <div style="width:min(1100px,90vw)">
+      <div class="section-label">Validation & KPIs</div>
+      <h2 class="glow-title" style="font-size:clamp(26px,3.6vw,44px);margin-bottom:24px">Where we are, honestly</h2>
+      <div style="display:flex;gap:16px;flex-wrap:wrap"><div class="glass" style="padding:18px 22px;flex:1;min-width:230px"><div style="color:var(--teal);font-weight:700;margin-bottom:8px">Evidence so far</div><div style="font-size:14px;line-height:1.55;opacity:.9">Working prototype, simulator, Flask API, 5 trained model files, 12 passing software tests.</div></div><div class="glass" style="padding:18px 22px;flex:1;min-width:230px"><div style="color:var(--teal);font-weight:700;margin-bottom:8px">KPIs (file-reported)</div><div style="font-size:14px;line-height:1.55;opacity:.9">Activity 99.62% · Stress 89.67% · Pulse MAE 1.10 BPM. Prototype benchmarks, not independent validation.</div></div><div class="glass" style="padding:18px 22px;flex:1;min-width:230px"><div style="color:var(--teal);font-weight:700;margin-bottom:8px">Targets</div><div style="font-size:14px;line-height:1.55;opacity:.9">Held-out participant-level evaluation · 1 wearable verified end to end · public reproducible release.</div></div><div class="glass" style="padding:18px 22px;flex:1;min-width:230px"><div style="color:var(--teal);font-weight:700;margin-bottom:8px">Lesson learned</div><div style="font-size:14px;line-height:1.55;opacity:.9">Datasets answer different questions; we never merge them into one fake astronaut patient.</div></div></div><p style="margin-top:18px;font-size:13px;opacity:.7">Stage: Prototype. Next: replace synthetic inputs and validate on independent participants.</p>
+    </div>
+  </div>
+
+  <div class="slide" id="slide11">
+    <div style="width:min(1100px,90vw)">
+      <div class="section-label">Responsible Innovation</div>
+      <h2 class="glow-title" style="font-size:clamp(26px,3.6vw,44px);margin-bottom:24px">Risks we design around</h2>
+      <div style="display:flex;gap:16px;flex-wrap:wrap"><div class="glass" style="padding:18px 22px;flex:1;min-width:230px"><div style="color:var(--teal);font-weight:700;margin-bottom:8px">Safety & misuse</div><div style="font-size:14px;line-height:1.55;opacity:.9">Outputs are estimates, never diagnoses or treatment. Clinical escalation follows approved mission procedures.</div></div><div class="glass" style="padding:18px 22px;flex:1;min-width:230px"><div style="color:var(--teal);font-weight:700;margin-bottom:8px">Privacy & security</div><div style="font-size:14px;line-height:1.55;opacity:.9">Simulated or de-identified data for demos. Consent, access control and encrypted transport before real data.</div></div><div class="glass" style="padding:18px 22px;flex:1;min-width:230px"><div style="color:var(--teal);font-weight:700;margin-bottom:8px">Bias & fairness</div><div style="font-size:14px;line-height:1.55;opacity:.9">Terrestrial training data may not represent astronauts. Participant-level validation and analog testing planned.</div></div><div class="glass" style="padding:18px 22px;flex:1;min-width:230px"><div style="color:var(--teal);font-weight:700;margin-bottom:8px">Honest states</div><div style="font-size:14px;line-height:1.55;opacity:.9">Every value is labeled measured, estimated, simulated or unavailable. Missing input never looks reassuring.</div></div></div>
+    </div>
+  </div>
+
+  <div class="slide" id="slide12">
+    <div style="width:min(1100px,90vw)">
+      <div class="section-label">Scale & Sustainability</div>
+      <h2 class="glow-title" style="font-size:clamp(26px,3.6vw,44px);margin-bottom:24px">From crews to remote care</h2>
+      <div style="display:flex;gap:16px;flex-wrap:wrap"><div class="glass" style="padding:18px 22px;flex:1;min-width:230px"><div style="color:var(--teal);font-weight:700;margin-bottom:8px">Scale</div><div style="font-size:14px;line-height:1.55;opacity:.9">Space agencies and analog habitats first, then polar stations, offshore work, disaster response and remote clinics.</div></div><div class="glass" style="padding:18px 22px;flex:1;min-width:230px"><div style="color:var(--teal);font-weight:700;margin-bottom:8px">What it takes</div><div style="font-size:14px;line-height:1.55;opacity:.9">Research, technology, talent, industry and government partnerships.</div></div><div class="glass" style="padding:18px 22px;flex:1;min-width:230px"><div style="color:var(--teal);font-weight:700;margin-bottom:8px">Sustainability</div><div style="font-size:14px;line-height:1.55;opacity:.9">Grants and partnerships now; open-source core; licensing and integration services; public-private validation funding.</div></div><div class="glass" style="padding:18px 22px;flex:1;min-width:230px"><div style="color:var(--teal);font-weight:700;margin-bottom:8px">Support sought</div><div style="font-size:14px;line-height:1.55;opacity:.9">Space-medicine mentors, an analog-mission pilot, evaluation datasets, a wearable partner.</div></div></div>
+    </div>
+  </div>
+
+  <div class="slide" id="slide13">
+    <div style="width:min(1100px,90vw)">
+      <div class="section-label">Grand Challenge Statement</div>
+      <h2 class="glow-title" style="font-size:clamp(26px,3.6vw,44px);margin-bottom:24px">Why it matters</h2>
+      <div style="display:flex;gap:16px;flex-wrap:wrap"><div class="glass" style="padding:18px 22px;flex:1;min-width:230px"><div style="color:var(--teal);font-weight:700;margin-bottom:8px">We are addressing</div><div style="font-size:14px;line-height:1.55;opacity:.9">the lack of clear, immediate health insight for astronauts on long-duration missions where Earth cannot respond quickly</div></div><div class="glass" style="padding:18px 22px;flex:1;min-width:230px"><div style="color:var(--teal);font-weight:700;margin-bottom:8px">by using</div><div style="font-size:14px;line-height:1.55;opacity:.9">AI and wearable sensing</div></div><div class="glass" style="padding:18px 22px;flex:1;min-width:230px"><div style="color:var(--teal);font-weight:700;margin-bottom:8px">to create</div><div style="font-size:14px;line-height:1.55;opacity:.9">safer, more autonomous health-awareness impact.</div></div></div><p style="margin-top:18px;font-size:13px;opacity:.7">As humans travel farther, crews must interpret their own health data. Better awareness at a distance is a step toward safer exploration.</p>
+    </div>
+  </div>
+
+  <!-- ══ CLOSING CTA ══ -->
+  <div class="slide" id="slide14">
     <div class="orbit-ring" style="z-index:1;"></div>
     <div class="orbit-ring orbit-ring2" style="z-index:1;"></div>
     <div class="nebula" style="width:700px;height:700px;top:50%;left:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(0,212,184,0.12),rgba(123,47,255,0.08));"></div>
@@ -2116,9 +2174,9 @@
       <p class="cta-sub fade-up-d4">ASTRA · Autonomous Space Therapeutics &amp; Risk Analyzer</p>
 
       <div class="cta-team fade-up-d5">
-        🛸 Team OrbitNexus
+        🛸 Team OrbitNexus · Ziad Sayed · Mohamed Abdelrazek · Mohamed Ayman · Ahmed Tarek · Youssef Amr · Mustafa Maher
       </div>
-      <div class="cta-hackathon fade-up-d6">NASA SPACE APPS HACKATHON 2026 · ASTRONAUT HEALTH MONITORING</div>
+      <div class="cta-hackathon fade-up-d6">BRAHMAM GLOBAL INNOVATION GRAND CHALLENGE 2026 · EMERGING TECHNOLOGIES FOR A BETTER WORLD</div>
     </div>
   </div>
 
@@ -2320,8 +2378,7 @@ const observer5 = new MutationObserver(() => {
         { v:1.10, d:2, s:'' },
         { v:99.62, d:2, s:'%' },
         { v:89.67, d:2, s:'%' },
-        { v:3, d:0, s:'%' },
-        { v:100, d:0, s:'%' }
+        { v:3, d:0, s:'%' }
       ];
       metrics.forEach((el, i) => {
         if (vals[i]) animateNumber(el, vals[i].v, vals[i].d, vals[i].s, 1200);
